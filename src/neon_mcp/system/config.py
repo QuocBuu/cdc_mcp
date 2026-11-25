@@ -12,6 +12,7 @@ ENV_ALLOW_HARDWARE = "NEON_MCP_ALLOW_HARDWARE"
 ENV_READ_ONLY = "NEON_MCP_READ_ONLY"
 ENV_SDK_PYTHON = "NEON_MCP_SDK_PYTHON"
 ENV_TARGETS_DIR = "NEON_MCP_TARGETS_DIR"
+ENV_PACKS_DIR = "NEON_MCP_PACKS_DIR"
 ENV_BUILD_TIMEOUT = "NEON_MCP_BUILD_TIMEOUT"
 
 
@@ -41,6 +42,9 @@ class Settings:
     targets_dir: Path | None = None
     """Extra directory of target profile YAML files."""
 
+    packs_dir: Path | None = None
+    """Extra directory of knowledge packs, searched before the packs bundled with NEON MCP."""
+
     build_timeout_s: float = 900.0
 
     @classmethod
@@ -49,6 +53,7 @@ class Settings:
         sdk = os.environ.get(ENV_SDK) or None
         python = os.environ.get(ENV_SDK_PYTHON) or None
         targets = os.environ.get(ENV_TARGETS_DIR) or None
+        packs = os.environ.get(ENV_PACKS_DIR) or None
         timeout = os.environ.get(ENV_BUILD_TIMEOUT)
         return cls(
             sdk_path=Path(sdk) if sdk else None,
@@ -57,6 +62,7 @@ class Settings:
             read_only=_env_flag(ENV_READ_ONLY),
             sdk_python=Path(python) if python else None,
             targets_dir=Path(targets) if targets else None,
+            packs_dir=Path(packs) if packs else None,
             build_timeout_s=float(timeout) if timeout else 900.0,
         )
 
@@ -71,4 +77,6 @@ class Settings:
             self.sdk_python = self.sdk_python.expanduser()
         if self.targets_dir is not None:
             self.targets_dir = self.targets_dir.expanduser().resolve()
+        if self.packs_dir is not None:
+            self.packs_dir = self.packs_dir.expanduser().resolve()
         return self

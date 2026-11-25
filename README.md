@@ -22,7 +22,7 @@ liệu và công cụ đều lấy trực tiếp từ checkout NEON-MDF:
 | Nạp firmware | `gt32u2086_flash.py` |
 | Image | `gt32u2086_image.py` |
 
-## Trạng thái phiên bản 0.2 — đủ phạm vi V1
+## Trạng thái phiên bản 0.3 — đủ phạm vi V1
 
 NEON MCP gồm **10 module**, mỗi module chia thành các submodule; mỗi submodule là một file riêng.
 Tổng cộng có **43 tool, 3 prompt và 6 resource**. Danh mục đầy đủ (module → submodule → file →
@@ -33,14 +33,20 @@ bằng tool `neon_list_modules`.
 |---|---|---|---|
 | 01 | MCP Core | server, tool_registry, resource_registry, prompt_manager, session_manager, transport | `neon_list_modules`, `session_get_context`, `session_set_context` |
 | 02 | Knowledge | documentation, search, device_knowledge, register_knowledge *(planned: datasheet/TRM/errata)* | `knowledge_*` (5) |
-| 03 | SDK | sdk_discovery, component, api, source, example, dependency | `sdk_*` (7) |
+| 03 | SDK | sdk_discovery, component, api, source, example, dependency, knowledge_pack | `sdk_*` (7) |
 | 04 | Development | toolchain, project, configuration, code_generation, build | `dev_*` (7) |
 | 05 | Debug | session, cpu, register, memory, peripheral, breakpoint, source_debug *(planned: multicore)* | `debug_*` (9) |
 | 06 | Programming | image, verify, boot, flash | `prog_*` (5) |
 | 07 | Analysis | elf, exception, register_decoder, log_analyzer *(planned: memory_analyzer)* | `analysis_*` (6) |
 | 08 | Target & Device | registry, capabilities, gt32u2086, cortex_m *(planned: riscv, fu3)* | `target_list` |
-| 09 | Backend & Adapter | neon_mdf, device_yaml, cmake, kconfig, elf, uart, gdb, openocd *(planned: vscode)* | (nội bộ) |
+| 09 | Backend & Adapter | neon_mdf, device_yaml, cmake, kconfig, elf, uart, gdb, openocd, knowledge_pack *(planned: vscode)* | (nội bộ) |
 | 10 | System & Security | config, workspace, process, security, logging, errors | (nội bộ) |
+
+**Knowledge pack:** dữ liệu chip, C API, tài liệu và SDK của từng bản NEON-MDF được sinh sẵn trong
+`src/neon_mcp/packs/neon-mdf-<version>/` (hiện có v1.0.0). Server chọn pack theo `neon-mdf/VERSION`
+của checkout và chỉ dùng khi checkout khớp bản phát hành; nếu không thì đọc trực tiếp từ checkout.
+Workflow `Knowledge packs` tự sinh pack khi NEON-MDF có tag mới. Chi tiết trong
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#knowledge-pack-theo-phiên-bản-neon-mdf).
 
 **Debug:** SDK chưa có cấu hình OpenOCD đã kiểm chứng cho GT32U2086, nên `debug_connect` cần
 một trong hai:
@@ -95,6 +101,7 @@ Gọi tool `dev_check_environment` để kiểm tra và nhận hướng dẫn c�
 | `--read-only` | `NEON_MCP_READ_ONLY=1` | Cấm tạo project, sửa sdkconfig và build |
 | `--sdk-python PATH` | `NEON_MCP_SDK_PYTHON` | Python dùng cho CMake và tool của SDK. Mặc định lấy `.venv` của app/SDK, nếu không có thì dùng Python của NEON MCP |
 | `--targets-dir PATH` | `NEON_MCP_TARGETS_DIR` | Thư mục profile target bổ sung |
+| `--packs-dir PATH` | `NEON_MCP_PACKS_DIR` | Thư mục knowledge pack bổ sung, được ưu tiên hơn pack đi kèm |
 | `--transport streamable-http --host --port` | | Chạy qua HTTP thay cho stdio |
 
 ### Claude Code
@@ -160,13 +167,14 @@ src/neon_mcp/
 │   └── app.py             #   application context dùng chung
 ├── modules/
 │   ├── knowledge/         # 02: documentation, search, device_knowledge, register_knowledge
-│   ├── sdk/               # 03: sdk_discovery, component, api, source, example, dependency
+│   ├── sdk/               # 03: sdk_discovery, component, api, source, example, dependency, knowledge_pack
 │   ├── development/       # 04: toolchain, project, configuration, code_generation, build
 │   ├── debug/             # 05: session, cpu, register_access, memory, peripheral, breakpoint, source_debug
 │   ├── programming/       # 06: image, verify, boot, flash
 │   └── analysis/          # 07: elf, exception, register_decoder, log_analyzer
 ├── targets/               # 08: registry, capabilities, gt32u2086/target.yaml, arch/cortex_m.py
-├── adapters/              # 09: neon_mdf, device, cmake, kconfig, elf, uart, gdb, openocd
+├── packs/                 # knowledge pack sinh sẵn: neon-mdf-<version>/
+├── adapters/              # 09: neon_mdf, device, cmake, kconfig, elf, uart, gdb, openocd, knowledge_pack
 └── system/                # 10: config, workspace, process, security, logging, errors
 ```
 
@@ -191,6 +199,8 @@ tool/submodule được mô tả trong [docs/ARCHITECTURE.md](docs/ARCHITECTURE.
 .venv/bin/python -m pytest -q            # test với ../neon_mdf, hoặc đặt NEON_MCP_TEST_SDK
 .venv/bin/ruff check src tests pages
 .venv/bin/python pages/build.py --sdk ../neon_mdf --out _site   # xem trước trang cài đặt: mở _site/index.html
+.venv/bin/neon-mcp-pack --sdk ../neon_mdf --check                # pack đi kèm còn khớp với code sinh pack không
+.venv/bin/python docs/update_catalog.py --sdk ../neon_mdf        # cập nhật danh mục trong docs/ARCHITECTURE.md
 ```
 
 Test build thật (`test_build_template`) chỉ chạy khi máy có `arm-none-eabi-gcc`, Ninja và
@@ -201,7 +211,8 @@ GitHub Actions:
 | Workflow | Khi nào chạy | Làm gì |
 |---|---|---|
 | `CI` | push lên `main`, pull request | Lint và chạy test trên NEON-MDF v1.0.0. Có 2 job: Python 3.10, và Python 3.12 kèm toolchain ARM + `gdb-multiarch` để chạy cả test build và debug |
-| `Pages` | push lên `main`, chạy tay | Build trang cài đặt từ server thật (danh mục tool, demo) rồi deploy lên GitHub Pages |
+| `Pages` | push lên `main`, chạy tay | Build trang cài đặt từ server thật (danh mục tool, demo, các knowledge pack) rồi deploy lên GitHub Pages |
+| `Knowledge packs` | hằng ngày, chạy tay | Sinh pack cho tag NEON-MDF mới, commit, rồi chạy lại CI và Pages. Chạy tay với `force` để sinh lại mọi pack |
 
 Lần đầu bật Pages: vào Settings → Pages → Source, chọn **GitHub Actions**.
 

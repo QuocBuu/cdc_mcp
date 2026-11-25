@@ -24,6 +24,7 @@ from typing import Any
 from mcp import Client
 
 from neon_mcp import __version__
+from neon_mcp.adapters import knowledge_pack as packs
 from neon_mcp.core.app import NeonApp
 from neon_mcp.core.server import create_server
 from neon_mcp.system.config import Settings
@@ -92,6 +93,7 @@ async def collect(app: NeonApp) -> dict[str, Any]:
         prompts = (await client.list_prompts()).prompts
         resources = (await client.list_resources()).resources
         templates = (await client.list_resource_templates()).resource_templates
+        info = (await client.call_tool("sdk_get_info", {})).structured_content
         demos = []
         for tool, arguments, title in DEMOS:
             result = await client.call_tool(tool, arguments)
@@ -118,6 +120,7 @@ async def collect(app: NeonApp) -> dict[str, Any]:
         "resources": [{"uri": str(r.uri), "description": first_paragraph(r.description)} for r in resources]
         + [{"uri": t.uri_template, "description": first_paragraph(t.description)} for t in templates],
         "demos": demos,
+        "pack_status": info["knowledge_pack"],
     }
 
 
@@ -142,7 +145,12 @@ def main() -> None:
         shutil.rmtree(workspace, ignore_errors=True)
 
     sdk_git = app.sdk.git_info() or {}
+    bundled = packs.find_packs([packs.BUNDLED_DIR])
     data.update({
+        "packs": [{"name": p.name, "version": p.version, "contents": p.manifest.get("contents", {}),
+                   "status": data["pack_status"]["status"] if p.name == data["pack_status"].get("pack") else None}
+                  for p in sorted(bundled, key=lambda p: [int(x) if x.isdigit() else x for x in p.version.split(".")],
+                                  reverse=True)],
         "version": __version__,
         "repo": args.repo,
         "install_ref": args.install_ref,
@@ -163,6 +171,11 @@ def main() -> None:
     args.out.mkdir(parents=True, exist_ok=True)
     (args.out / "index.html").write_text(html, encoding="utf-8")
     shutil.copy(HERE / "favicon.svg", args.out / "favicon.svg")
+    # Knowledge packs at packs/<name>/..., plus packs/index.json for tools and scripts.
+    shutil.rmtree(args.out / "packs", ignore_errors=True)
+    for pack in bundled:
+        shutil.copytree(pack.path, args.out / "packs" / pack.name)
+    (args.out / "packs" / "index.json").write_text(packs.dumps([p.summary() for p in bundled]), encoding="utf-8")
     (args.out / ".nojekyll").write_text("")
     print(f"wrote {args.out / 'index.html'} ({len(html) // 1024} KiB, {len(data['tools'])} tools, "
           f"{len(data['demos'])} demos)")

@@ -27,6 +27,9 @@ MODULE = Module(
         Submodule("dependency", "Dependency Resolver",
                   "Kconfig switches, includes, CRM clocks and CMake needed for a set of components.",
                   source="modules/sdk/dependency.py"),
+        Submodule("knowledge_pack", "Knowledge Pack",
+                  "Device, API and docs data pre-generated per NEON-MDF release; used when the checkout matches.",
+                  source="modules/sdk/knowledge_pack.py"),
     ],
 )
 

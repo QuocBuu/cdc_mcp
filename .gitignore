@@ -7,3 +7,7 @@ build/
 dist/
 _site/
 .ruff_cache/
+
+# Local-only notes (research, provenance, update logs): never pushed
+research/
+notes/

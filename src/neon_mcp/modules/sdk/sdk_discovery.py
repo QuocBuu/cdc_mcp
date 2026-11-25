@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any
 
 from ... import __version__
 from ...core.tools import READ_ONLY, ToolRegistry
+from . import knowledge_pack
 from .api import get_api
 
 if TYPE_CHECKING:
@@ -19,11 +20,13 @@ def register(registry: ToolRegistry, app: NeonApp) -> None:
 
     @registry.tool("sdk", "sdk_discovery", READ_ONLY)
     def sdk_get_info() -> dict[str, Any]:
-        """Identify the NEON-MDF SDK in use: version, location, git revision, presets, devices and tools."""
+        """Identify the NEON-MDF SDK in use: version, location, git revision, presets, devices, tools,
+        and whether the pre-generated knowledge pack of this release is in use."""
         sdk = app.sdk
         return {
             "neon_mcp_version": __version__,
             "sdk_version": sdk.version,
+            "knowledge_pack": knowledge_pack.status(app),
             "sdk_root": str(sdk.root),
             "neon_mdf_path": str(sdk.sdk_dir),
             "git": sdk.git_info(),

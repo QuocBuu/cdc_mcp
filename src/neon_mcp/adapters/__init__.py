@@ -19,6 +19,8 @@ MODULE = Module(
                   source="adapters/gdb.py"),
         Submodule("openocd", "OpenOCD", "Start/stop OpenOCD with board-verified configs.",
                   source="adapters/openocd.py"),
+        Submodule("knowledge_pack", "Knowledge pack files", "Find, read, write and fingerprint versioned packs.",
+                  source="adapters/knowledge_pack.py"),
         Submodule("vscode", "VS Code", "Share state with the NEON-MDF VS Code extension.", status="planned"),
     ],
 )

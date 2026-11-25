@@ -1,0 +1,69 @@
+name: Knowledge packs
+
+# Generates the knowledge pack of every NEON-MDF release that does not have one yet, commits it,
+# then rebuilds CI and Pages. MCP installs that run from git (uvx --from git+...) pick it up on
+# their next start.
+
+on:
+  schedule:
+    - cron: "17 1 * * *"  # daily
+  workflow_dispatch:
+    inputs:
+      force:
+        description: Regenerate every pack (after changing the pack generator)
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: packs
+  cancel-in-progress: false
+
+jobs:
+  packs:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Install NEON MCP
+        run: python -m pip install .
+
+      - name: Generate missing packs
+        env:
+          FORCE: ${{ inputs.force }}
+        run: |
+          set -euo pipefail
+          sdk_repo=https://github.com/ftel-cdc/neon_mdf.git
+          tags=$(git ls-remote --tags --refs "$sdk_repo" 'v*' | sed 's#.*refs/tags/##' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' || true)
+          for tag in $tags; do
+            pack=src/neon_mcp/packs/neon-mdf-${tag#v}
+            if [ -d "$pack" ] && [ "$FORCE" != "true" ]; then continue; fi
+            rm -rf .sdk
+            git clone --quiet --depth 1 --branch "$tag" "$sdk_repo" .sdk
+            neon-mcp-pack --sdk .sdk --out src/neon_mcp/packs --force
+          done
+          rm -rf .sdk
+
+      - name: Commit and rebuild
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git add src/neon_mcp/packs
+          if git diff --cached --quiet; then
+            echo "Every NEON-MDF release already has an up-to-date pack."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Knowledge packs: $(git diff --cached --name-only | sed -n 's#src/neon_mcp/packs/\([^/]*\)/.*#\1#p' | sort -u | paste -sd ' ')"
+          git push
+          # Pushes made with GITHUB_TOKEN do not trigger workflows; start them explicitly.
+          gh workflow run ci.yml --ref main
+          gh workflow run pages.yml --ref main

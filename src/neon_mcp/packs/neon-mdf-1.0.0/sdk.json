@@ -1,0 +1,883 @@
+{
+  "version": "1.0.0",
+  "presets": [
+    "GT32U2086"
+  ],
+  "components": [
+    {
+      "name": "adc",
+      "kind": "driver",
+      "header": "neon-mdf/components/driver/adc/neon_adc.h",
+      "include": "#include \"adc/neon_adc.h\"",
+      "backends": [
+        "neon-mdf/components/driver/adc/platform/gt32u2086/neon_adc.c"
+      ],
+      "public_functions": 5,
+      "kconfig": "CONFIG_NEON_MDF_DRIVER_ADC",
+      "enabled_by_default": true,
+      "always_built": false,
+      "selectable": true,
+      "requires_crm_clock": true,
+      "description": "GT32U2086 ADC: 12-bit sample slots, configuration channel/timing and polling."
+    },
+    {
+      "name": "aes",
+      "kind": "driver",
+      "header": "neon-mdf/components/driver/aes/neon_aes.h",
+      "include": "#include \"aes/neon_aes.h\"",
+      "backends": [
+        "neon-mdf/components/driver/aes/platform/gt32u2086/neon_aes.c"
+      ],
+      "public_functions": 5,
+      "kconfig": "CONFIG_NEON_MDF_DRIVER_AES",
+      "enabled_by_default": true,
+      "always_built": false,
+      "selectable": true,
+      "requires_crm_clock": true,
+      "description": "GT32U2086 AES-128: ECB/CBC/CTR, key/IV and polling READY/DONE."
+    },
+    {
+      "name": "crc",
+      "kind": "driver",
+      "header": "neon-mdf/components/driver/crc/neon_crc.h",
+      "include": "#include \"crc/neon_crc.h\"",
+      "backends": [
+        "neon-mdf/components/driver/crc/platform/gt32u2086/neon_crc.c"
+      ],
+      "public_functions": 1,
+      "kconfig": "CONFIG_NEON_MDF_DRIVER_CRC",
+      "enabled_by_default": true,
+      "always_built": false,
+      "selectable": true,
+      "requires_crm_clock": true,
+      "description": "Includes CRC-8 driver (NEON_CRC_Calculate) - real port from src_gt32u2086/gt32u2086_crc.c. Disabled to reduce Flash usage if the app is not in use."
+    },
+    {
+      "name": "crm",
+      "kind": "driver",
+      "header": "neon-mdf/components/driver/crm/neon_crm.h",
+      "include": "#include \"crm/neon_crm.h\"",
+      "backends": [
+        "neon-mdf/components/driver/crm/platform/gt32u2086/neon_crm.c"
+      ],
+      "public_functions": 15,
+      "kconfig": null,
+      "enabled_by_default": true,
+      "always_built": true,
+      "selectable": false,
+      "requires_crm_clock": false,
+      "description": null
+    },
+    {
+      "name": "dma",
+      "kind": "driver",
+      "header": "neon-mdf/components/driver/dma/neon_dma.h",
+      "include": "#include \"dma/neon_dma.h\"",
+      "backends": [
+        "neon-mdf/components/driver/dma/platform/gt32u2086/neon_dma.c"
+      ],
+      "public_functions": 6,
+      "kconfig": "CONFIG_NEON_MDF_DRIVER_DMA",
+      "enabled_by_default": true,
+      "always_built": false,
+      "selectable": true,
+      "requires_crm_clock": true,
+      "description": "GT32U2086 FTEL DMA: 8 channel, command register and 32-bit copy word."
+    },
+    {
+      "name": "efuse",
+      "kind": "driver",
+      "header": "neon-mdf/components/driver/efuse/neon_efuse.h",
+      "include": "#include \"efuse/neon_efuse.h\"",
+      "backends": [
+        "neon-mdf/components/driver/efuse/platform/gt32u2086/neon_efuse.c"
+      ],
+      "public_functions": 4,
+      "kconfig": "CONFIG_NEON_MDF_DRIVER_EFUSE",
+      "enabled_by_default": false,
+      "always_built": false,
+      "selectable": false,
+      "requires_crm_clock": false,
+      "description": "Old sdkconfig compatible symbol; OTP source kept at driver/efuse. GT32U2086 ROM v5 save security policy and public key in Flash NVR; use Flash driver's NVR API, not old OTP address.",
+      "note": "Legacy OTP driver; disabled because OTP is not in the current memory map (use Flash NVR APIs)."
+    },
+    {
+      "name": "flash",
+      "kind": "driver",
+      "header": "neon-mdf/components/driver/flash/neon_flash.h",
+      "include": "#include \"flash/neon_flash.h\"",
+      "backends": [
+        "neon-mdf/components/driver/flash/platform/gt32u2086/neon_flash.c"
+      ],
+      "public_functions": 28,
+      "kconfig": null,
+      "enabled_by_default": true,
+      "always_built": true,
+      "selectable": false,
+      "requires_crm_clock": false,
+      "description": null
+    },
+    {
+      "name": "gpio",
+      "kind": "driver",
+      "header": "neon-mdf/components/driver/gpio/neon_gpio.h",
+      "include": "#include \"gpio/neon_gpio.h\"",
+      "backends": [
+        "neon-mdf/components/driver/gpio/platform/gt32u2086/neon_gpio.c"
+      ],
+      "public_functions": 12,
+      "kconfig": null,
+      "enabled_by_default": true,
+      "always_built": true,
+      "selectable": false,
+      "requires_crm_clock": false,
+      "description": null
+    },
+    {
+      "name": "i2c",
+      "kind": "driver",
+      "header": "neon-mdf/components/driver/i2c/neon_i2c.h",
+      "include": "#include \"i2c/neon_i2c.h\"",
+      "backends": [
+        "neon-mdf/components/driver/i2c/platform/gt32u2086/neon_i2c.c"
+      ],
+      "public_functions": 37,
+      "kconfig": "CONFIG_NEON_MDF_DRIVER_I2C",
+      "enabled_by_default": true,
+      "always_built": false,
+      "selectable": true,
+      "requires_crm_clock": false,
+      "description": "HAL I2C GT32U2086: master/slave polling and interrupt, address 7/10 bit, memory-read repeated START, FIFO, SMBus/PEC, DMA request, bus-clear, CRM management and self-configuration SDA/SCL. Timing using period number i2c_clk; board must have external pull-up resistors on both SDA and SCL."
+    },
+    {
+      "name": "pwm",
+      "kind": "driver",
+      "header": "neon-mdf/components/driver/pwm/neon_pwm.h",
+      "include": "#include \"pwm/neon_pwm.h\"",
+      "backends": [
+        "neon-mdf/components/driver/pwm/platform/gt32u2086/neon_pwm.c"
+      ],
+      "public_functions": 19,
+      "kconfig": "CONFIG_NEON_MDF_DRIVER_PWM",
+      "enabled_by_default": true,
+      "always_built": false,
+      "selectable": true,
+      "requires_crm_clock": false,
+      "description": "Report includes two-channel PWM GT32U2086 v8 DTI drivers (NEON_PWM_Init/Start/Stop/SetPeriod/SetPulse), following the PWM DTI register map selected by GT32U2086 v8 VP."
+    },
+    {
+      "name": "qspi",
+      "kind": "driver",
+      "header": "neon-mdf/components/driver/qspi/neon_qspi.h",
+      "include": "#include \"qspi/neon_qspi.h\"",
+      "backends": [
+        "neon-mdf/components/driver/qspi/platform/gt32u2086/neon_qspi.c"
+      ],
+      "public_functions": 14,
+      "kconfig": "CONFIG_NEON_MDF_DRIVER_QSPI",
+      "enabled_by_default": true,
+      "always_built": false,
+      "selectable": true,
+      "requires_crm_clock": false,
+      "description": "GT32U2086 QSPI SDR: Single/Dual/Quad command phases, FIFO polling, transfer completion, abort and memory-mapped reads. Flash erase/program, QE and status commands are supplied by the application. Automatic status-polling, DDR and DMA APIs are not implemented."
+    },
+    {
+      "name": "rtc",
+      "kind": "driver",
+      "header": "neon-mdf/components/driver/rtc/neon_rtc.h",
+      "include": "#include \"rtc/neon_rtc.h\"",
+      "backends": [
+        "neon-mdf/components/driver/rtc/platform/gt32u2086/neon_rtc.c"
+      ],
+      "public_functions": 6,
+      "kconfig": "CONFIG_NEON_MDF_DRIVER_RTC",
+      "enabled_by_default": true,
+      "always_built": false,
+      "selectable": true,
+      "requires_crm_clock": true,
+      "description": "Report includes RTC driver (NEON_RTC_Init/SetTime/GetTime/SetDate/GetDate) - Init/DeInit port real from src_gt32u2086/gt32u2086_dti_rtc.c, Set/GetTime/Date write new pairing inline helper BCD real in header."
+    },
+    {
+      "name": "spi",
+      "kind": "driver",
+      "header": "neon-mdf/components/driver/spi/neon_spi.h",
+      "include": "#include \"spi/neon_spi.h\"",
+      "backends": [
+        "neon-mdf/components/driver/spi/platform/gt32u2086/neon_spi.c"
+      ],
+      "public_functions": 29,
+      "kconfig": "CONFIG_NEON_MDF_DRIVER_SPI",
+      "enabled_by_default": true,
+      "always_built": false,
+      "selectable": true,
+      "requires_crm_clock": false,
+      "description": "HAL SPI master/slave: polling 8/16/24/32-bit, full-duplex, slave-select, timing, FIFO, interrupt-status, clock-failure and DMA communication configuration. Pinmux that board configuration before transmission."
+    },
+    {
+      "name": "syscsr",
+      "kind": "driver",
+      "header": "neon-mdf/components/driver/syscsr/neon_syscsr.h",
+      "include": "#include \"syscsr/neon_syscsr.h\"",
+      "backends": [
+        "neon-mdf/components/driver/syscsr/platform/gt32u2086/neon_syscsr.c"
+      ],
+      "public_functions": 24,
+      "kconfig": null,
+      "enabled_by_default": true,
+      "always_built": true,
+      "selectable": false,
+      "requires_crm_clock": false,
+      "description": null
+    },
+    {
+      "name": "tim",
+      "kind": "driver",
+      "header": "neon-mdf/components/driver/tim/neon_tim.h",
+      "include": "#include \"tim/neon_tim.h\"",
+      "backends": [
+        "neon-mdf/components/driver/tim/platform/gt32u2086/neon_tim.c"
+      ],
+      "public_functions": 39,
+      "kconfig": "CONFIG_NEON_MDF_DRIVER_TIM",
+      "enabled_by_default": true,
+      "always_built": false,
+      "selectable": true,
+      "requires_crm_clock": false,
+      "description": "report including full Timer driver for two channels CH0/CH1: configuration counter, prescaler/reload, compare, update/preload/one-pulse/center-aligned, interrupt/flag and clock-failure status. Bitfield and background logic taken from GT32U2086 LL; public API checks parameters and returns NEON_StatusTypeDef."
+    },
+    {
+      "name": "trng",
+      "kind": "driver",
+      "header": "neon-mdf/components/driver/trng/neon_trng.h",
+      "include": "#include \"trng/neon_trng.h\"",
+      "backends": [
+        "neon-mdf/components/driver/trng/platform/gt32u2086/neon_trng.c"
+      ],
+      "public_functions": 3,
+      "kconfig": "CONFIG_NEON_MDF_DRIVER_TRNG",
+      "enabled_by_default": true,
+      "always_built": false,
+      "selectable": true,
+      "requires_crm_clock": true,
+      "description": "Report included driver TRNG (NEON_TRNG_Init/GetRandomNumber) - Init/DeInit port real from src_gt32u2086/gt32u2086_dti_trng.c, GetRandomNumber write new pairing inline helper real in header. 3rd IP (Dolphin Technology)."
+    },
+    {
+      "name": "uart",
+      "kind": "driver",
+      "header": "neon-mdf/components/driver/uart/neon_uart.h",
+      "include": "#include \"uart/neon_uart.h\"",
+      "backends": [
+        "neon-mdf/components/driver/uart/platform/gt32u2086/neon_uart.c"
+      ],
+      "public_functions": 23,
+      "kconfig": "CONFIG_NEON_MDF_DRIVER_UART",
+      "enabled_by_default": true,
+      "always_built": false,
+      "selectable": true,
+      "requires_crm_clock": false,
+      "description": "HAL UART polling, FIFO and interrupt-control notifications in build. GT32U2086: Enable UART while compiling printf/vprintf/puts/putchar and syscall hook _write, no separate printf flag is required. The console initializes UART0 on the first export. Disabling option will remove the UART driver and GT32U2086 console from the build; calling those APIs will report link errors."
+    },
+    {
+      "name": "wdt",
+      "kind": "driver",
+      "header": "neon-mdf/components/driver/wdt/neon_wdt.h",
+      "include": "#include \"wdt/neon_wdt.h\"",
+      "backends": [
+        "neon-mdf/components/driver/wdt/platform/gt32u2086/neon_wdt.c"
+      ],
+      "public_functions": 7,
+      "kconfig": "CONFIG_NEON_MDF_DRIVER_WDT",
+      "enabled_by_default": true,
+      "always_built": false,
+      "selectable": true,
+      "requires_crm_clock": false,
+      "description": "GT32U2086 watchdog: timeout range, reset/interrupt response, refresh, read counter and acknowledge interrupt."
+    },
+    {
+      "name": "console",
+      "kind": "middleware",
+      "header": "neon-mdf/components/console/neon_console.h",
+      "include": "#include \"console/neon_console.h\"  (printf needs only <stdio.h>)",
+      "backends": [
+        "neon-mdf/components/console/platform/gt32u2086/neon_console.c"
+      ],
+      "public_functions": 5,
+      "kconfig": "CONFIG_NEON_MDF_DRIVER_UART",
+      "enabled_by_default": true,
+      "always_built": false,
+      "selectable": false,
+      "requires_crm_clock": false,
+      "description": "printf/vprintf/puts/putchar and _write over UART0 (19200 8N1 by default). Built whenever the UART driver is enabled. Integers and strings only, no float."
+    },
+    {
+      "name": "freertos",
+      "kind": "rtos",
+      "header": "neon-mdf/rtos/FreeRTOS-Kernel/include/FreeRTOS.h",
+      "include": "#include \"FreeRTOS.h\"",
+      "backends": [
+        "neon-mdf/rtos/FreeRTOS-Kernel/portable/GCC/ARM_CM0/port.c"
+      ],
+      "public_functions": null,
+      "kconfig": null,
+      "enabled_by_default": false,
+      "always_built": false,
+      "selectable": false,
+      "requires_crm_clock": false,
+      "description": "FreeRTOS kernel with GCC ARM_CM0 port and heap_4, added per application with include(${NEON_MDF_PATH}/cmake/freertos.cmake) + neon_mdf_add_freertos(...) and linking freertos_kernel. The app owns Inc/FreeRTOSConfig.h."
+    }
+  ],
+  "examples": [
+    {
+      "name": "ADC_Sampling",
+      "path": "examples/ADC_Sampling",
+      "firmware_target": "gt32u2086_adc_sampling",
+      "title": "ADC_Sampling",
+      "summary": "ADC batch sampling and range checks.",
+      "uses_modules": [
+        "adc",
+        "console",
+        "crm",
+        "uart"
+      ],
+      "freertos": false,
+      "interactive_terminal": true,
+      "app_kconfig_options": [
+        "CONFIG_GT32U2086_EXAMPLE_FIXED_CLOCK_HZ",
+        "CONFIG_GT32U2086_EXAMPLE_RX_TIMEOUT_POLLS"
+      ],
+      "sources": [
+        "examples/ADC_Sampling/Src/adc_sampling.c",
+        "examples/ADC_Sampling/Src/main.c"
+      ],
+      "readme": "examples/ADC_Sampling/README.md"
+    },
+    {
+      "name": "AES_Known_Vector",
+      "path": "examples/AES_Known_Vector",
+      "firmware_target": "gt32u2086_aes_known_vector",
+      "title": "AES_Known_Vector",
+      "summary": "AES-128 ECB encryption and decryption known-answer checks.",
+      "uses_modules": [
+        "aes",
+        "console",
+        "crm",
+        "uart"
+      ],
+      "freertos": false,
+      "interactive_terminal": true,
+      "app_kconfig_options": [
+        "CONFIG_GT32U2086_EXAMPLE_FIXED_CLOCK_HZ",
+        "CONFIG_GT32U2086_EXAMPLE_RX_TIMEOUT_POLLS"
+      ],
+      "sources": [
+        "examples/AES_Known_Vector/Src/aes_known_vector.c",
+        "examples/AES_Known_Vector/Src/main.c"
+      ],
+      "readme": "examples/AES_Known_Vector/README.md"
+    },
+    {
+      "name": "Blinky",
+      "path": "examples/Blinky",
+      "firmware_target": "blinky",
+      "title": null,
+      "summary": null,
+      "uses_modules": [
+        "gpio"
+      ],
+      "freertos": false,
+      "interactive_terminal": false,
+      "app_kconfig_options": [
+        "CONFIG_BLINKY_DELAY_LOOPS"
+      ],
+      "sources": [
+        "examples/Blinky/Src/main.c"
+      ],
+      "readme": null
+    },
+    {
+      "name": "CRC_Known_Vector",
+      "path": "examples/CRC_Known_Vector",
+      "firmware_target": "gt32u2086_crc_known_vector",
+      "title": "CRC_Known_Vector",
+      "summary": "CRC-8 known vectors and length boundary checks.",
+      "uses_modules": [
+        "console",
+        "crc",
+        "crm",
+        "uart"
+      ],
+      "freertos": false,
+      "interactive_terminal": true,
+      "app_kconfig_options": [
+        "CONFIG_GT32U2086_EXAMPLE_FIXED_CLOCK_HZ",
+        "CONFIG_GT32U2086_EXAMPLE_RX_TIMEOUT_POLLS"
+      ],
+      "sources": [
+        "examples/CRC_Known_Vector/Src/crc_known_vector.c",
+        "examples/CRC_Known_Vector/Src/main.c"
+      ],
+      "readme": "examples/CRC_Known_Vector/README.md"
+    },
+    {
+      "name": "Flash_Read_Write",
+      "path": "examples/Flash_Read_Write",
+      "firmware_target": "gt32u2086_flash_read_write",
+      "title": "Flash_Read_Write",
+      "summary": "Erase, program and verify GT32U2086 internal Flash.",
+      "uses_modules": [
+        "console",
+        "flash",
+        "uart"
+      ],
+      "freertos": false,
+      "interactive_terminal": true,
+      "app_kconfig_options": [
+        "CONFIG_GT32U2086_EXAMPLE_FIXED_CLOCK_HZ",
+        "CONFIG_GT32U2086_EXAMPLE_RX_TIMEOUT_POLLS"
+      ],
+      "sources": [
+        "examples/Flash_Read_Write/Src/flash_read_write.c",
+        "examples/Flash_Read_Write/Src/main.c"
+      ],
+      "readme": "examples/Flash_Read_Write/README.md"
+    },
+    {
+      "name": "FreeRTOS_Blinky",
+      "path": "examples/FreeRTOS_Blinky",
+      "firmware_target": "freertos_blinky",
+      "title": null,
+      "summary": null,
+      "uses_modules": [
+        "gpio"
+      ],
+      "freertos": true,
+      "interactive_terminal": false,
+      "app_kconfig_options": [],
+      "sources": [
+        "examples/FreeRTOS_Blinky/Src/main.c"
+      ],
+      "readme": null
+    },
+    {
+      "name": "FreeRTOS_Peripheral_Queue",
+      "path": "examples/FreeRTOS_Peripheral_Queue",
+      "firmware_target": "gt32u2086_freertos_peripheral_queue",
+      "title": "FreeRTOS_Peripheral_Queue",
+      "summary": "UART RX interrupt and a periodic FreeRTOS task send events to one queue. The terminal task receives the events during a run, controls **GPIOB7 (PB7)** and prints the results.",
+      "uses_modules": [
+        "console",
+        "gpio",
+        "uart"
+      ],
+      "freertos": true,
+      "interactive_terminal": true,
+      "app_kconfig_options": [
+        "CONFIG_GT32U2086_EXAMPLE_FIXED_CLOCK_HZ",
+        "CONFIG_FREERTOS_PERIPHERAL_QUEUE_LENGTH",
+        "CONFIG_FREERTOS_PERIPHERAL_QUEUE_PERIOD_MS"
+      ],
+      "sources": [
+        "examples/FreeRTOS_Peripheral_Queue/Src/freertos_peripheral_queue.c",
+        "examples/FreeRTOS_Peripheral_Queue/Src/main.c"
+      ],
+      "readme": "examples/FreeRTOS_Peripheral_Queue/README.md"
+    },
+    {
+      "name": "GPIO_Input_Output",
+      "path": "examples/GPIO_Input_Output",
+      "firmware_target": "gt32u2086_gpio_input_output",
+      "title": "GPIO_Input_Output",
+      "summary": "PB5 button controls PB7 output.",
+      "uses_modules": [
+        "console",
+        "gpio",
+        "uart"
+      ],
+      "freertos": false,
+      "interactive_terminal": true,
+      "app_kconfig_options": [
+        "CONFIG_GT32U2086_EXAMPLE_FIXED_CLOCK_HZ",
+        "CONFIG_GT32U2086_EXAMPLE_RX_TIMEOUT_POLLS"
+      ],
+      "sources": [
+        "examples/GPIO_Input_Output/Src/gpio_input_output.c",
+        "examples/GPIO_Input_Output/Src/main.c"
+      ],
+      "readme": "examples/GPIO_Input_Output/README.md"
+    },
+    {
+      "name": "GPIO_Interrupt",
+      "path": "examples/GPIO_Interrupt",
+      "firmware_target": "gt32u2086_gpio_interrupt",
+      "title": "GPIO_Interrupt",
+      "summary": "PB5 rising-edge interrupt counter.",
+      "uses_modules": [
+        "console",
+        "gpio",
+        "uart"
+      ],
+      "freertos": false,
+      "interactive_terminal": true,
+      "app_kconfig_options": [
+        "CONFIG_GT32U2086_EXAMPLE_FIXED_CLOCK_HZ",
+        "CONFIG_GT32U2086_EXAMPLE_RX_TIMEOUT_POLLS"
+      ],
+      "sources": [
+        "examples/GPIO_Interrupt/Src/gpio_interrupt.c",
+        "examples/GPIO_Interrupt/Src/main.c"
+      ],
+      "readme": "examples/GPIO_Interrupt/README.md"
+    },
+    {
+      "name": "I2C_DMA",
+      "path": "examples/I2C_DMA",
+      "firmware_target": "gt32u2086_i2c_dma",
+      "title": "I2C_DMA",
+      "summary": "Independent GT32U2086 firmware for I2C0 DMA communication with an AT24C256/AT24C256C EEPROM.",
+      "uses_modules": [
+        "console",
+        "crm",
+        "dma",
+        "i2c",
+        "uart"
+      ],
+      "freertos": false,
+      "interactive_terminal": true,
+      "app_kconfig_options": [
+        "CONFIG_GT32U2086_EXAMPLE_FIXED_CLOCK_HZ",
+        "CONFIG_GT32U2086_EXAMPLE_RX_TIMEOUT_POLLS",
+        "CONFIG_I2C_DMA_ADDRESS",
+        "CONFIG_I2C_DMA_TIMEOUT_POLLS"
+      ],
+      "sources": [
+        "examples/I2C_DMA/Src/i2c_dma.c",
+        "examples/I2C_DMA/Src/main.c"
+      ],
+      "readme": "examples/I2C_DMA/README.md"
+    },
+    {
+      "name": "I2C_EEPROM",
+      "path": "examples/I2C_EEPROM",
+      "firmware_target": "gt32u2086_i2c_eeprom",
+      "title": "I2C_EEPROM",
+      "summary": "Independent GT32U2086 firmware for I2C0 master communication with an AT24C256/AT24C256C EEPROM. Boot opens the UART terminal at `fpga:>>`. Press `r` without Enter to open the I2C menu. Console: UART0, 19200 baud, 8N1. Default FPGA clock: 10 MHz; target SCL: 100 kHz.",
+      "uses_modules": [
+        "console",
+        "i2c",
+        "uart"
+      ],
+      "freertos": false,
+      "interactive_terminal": true,
+      "app_kconfig_options": [
+        "CONFIG_GT32U2086_EXAMPLE_FIXED_CLOCK_HZ",
+        "CONFIG_GT32U2086_EXAMPLE_RX_TIMEOUT_POLLS",
+        "CONFIG_I2C_EEPROM_ADDRESS",
+        "CONFIG_I2C_EEPROM_TIMEOUT_POLLS"
+      ],
+      "sources": [
+        "examples/I2C_EEPROM/Src/i2c_eeprom.c",
+        "examples/I2C_EEPROM/Src/main.c"
+      ],
+      "readme": "examples/I2C_EEPROM/README.md"
+    },
+    {
+      "name": "PWM_Output",
+      "path": "examples/PWM_Output",
+      "firmware_target": "gt32u2086_pwm_output",
+      "title": "PWM_Output",
+      "summary": "TIM0_CH0 PWM output.",
+      "uses_modules": [
+        "console",
+        "pwm",
+        "uart"
+      ],
+      "freertos": false,
+      "interactive_terminal": true,
+      "app_kconfig_options": [
+        "CONFIG_GT32U2086_EXAMPLE_FIXED_CLOCK_HZ",
+        "CONFIG_GT32U2086_EXAMPLE_RX_TIMEOUT_POLLS",
+        "CONFIG_PWM_OUTPUT_TEST_PERIOD",
+        "CONFIG_PWM_OUTPUT_TEST_PRESCALER"
+      ],
+      "sources": [
+        "examples/PWM_Output/Src/main.c",
+        "examples/PWM_Output/Src/pwm_output.c"
+      ],
+      "readme": "examples/PWM_Output/README.md"
+    },
+    {
+      "name": "Printf_Log",
+      "path": "examples/Printf_Log",
+      "firmware_target": "printf_log",
+      "title": "Printf_Log — UART logging on GT32U2086",
+      "summary": "This bare-metal example calls `printf` directly through the SDK's built-in word-only formatter and `_write`. The application only includes `<stdio.h>`; it does not need to configure or attach a UART explicitly. Enable `CONFIG_NEON_MDF_DRIVER_UART=y`; there is no separate printf flag. The first printf call initializes UART0 automatically.",
+      "uses_modules": [
+        "console"
+      ],
+      "freertos": false,
+      "interactive_terminal": false,
+      "app_kconfig_options": [],
+      "sources": [
+        "examples/Printf_Log/Src/main.c"
+      ],
+      "readme": "examples/Printf_Log/README.md"
+    },
+    {
+      "name": "QSPI_Flash_Read_Write",
+      "path": "examples/QSPI_Flash_Read_Write",
+      "firmware_target": "gt32u2086_qspi_flash_read_write",
+      "title": "QSPI_Flash_Read_Write",
+      "summary": "Standalone GT32U2086 firmware for indirect NOR erase, page program and byte verification. The application starts at the `fpga:>>` UART terminal and waits for `r`.",
+      "uses_modules": [
+        "console",
+        "qspi",
+        "uart"
+      ],
+      "freertos": false,
+      "interactive_terminal": true,
+      "app_kconfig_options": [
+        "CONFIG_GT32U2086_EXAMPLE_FIXED_CLOCK_HZ",
+        "CONFIG_QSPI_FLASH_READ_WRITE_TEST_OFFSET",
+        "CONFIG_QSPI_FLASH_READ_WRITE_DIVIDER",
+        "CONFIG_QSPI_FLASH_READ_WRITE_MODE_0",
+        "CONFIG_QSPI_FLASH_READ_WRITE_MODE_3",
+        "CONFIG_QSPI_FLASH_READ_WRITE_TIMEOUT_POLLS",
+        "CONFIG_QSPI_FLASH_READ_WRITE_READY_POLLS"
+      ],
+      "sources": [
+        "examples/QSPI_Flash_Read_Write/Src/main.c",
+        "examples/QSPI_Flash_Read_Write/Src/qspi_flash_read_write.c"
+      ],
+      "readme": "examples/QSPI_Flash_Read_Write/README.md"
+    },
+    {
+      "name": "QSPI_XIP_Read",
+      "path": "examples/QSPI_XIP_Read",
+      "firmware_target": "gt32u2086_qspi_xip_read",
+      "title": "QSPI_XIP_Read",
+      "summary": "Standalone GT32U2086 firmware that programs a known NOR pattern using indirect Quad commands, then verifies it through the **memory-mapped AHB window**. The application itself executes from internal Flash. Press `r` at the `fpga:>>` terminal to open its menu.",
+      "uses_modules": [
+        "console",
+        "qspi",
+        "uart"
+      ],
+      "freertos": false,
+      "interactive_terminal": true,
+      "app_kconfig_options": [
+        "CONFIG_GT32U2086_EXAMPLE_FIXED_CLOCK_HZ",
+        "CONFIG_QSPI_XIP_READ_TEST_OFFSET",
+        "CONFIG_QSPI_XIP_READ_DIVIDER",
+        "CONFIG_QSPI_XIP_READ_MODE_0",
+        "CONFIG_QSPI_XIP_READ_MODE_3",
+        "CONFIG_QSPI_XIP_READ_TIMEOUT_POLLS",
+        "CONFIG_QSPI_XIP_READ_READY_POLLS",
+        "CONFIG_QSPI_XIP_READ_TRIES"
+      ],
+      "sources": [
+        "examples/QSPI_XIP_Read/Src/main.c",
+        "examples/QSPI_XIP_Read/Src/qspi_xip_read.c"
+      ],
+      "readme": "examples/QSPI_XIP_Read/README.md"
+    },
+    {
+      "name": "RTC_Calendar",
+      "path": "examples/RTC_Calendar",
+      "firmware_target": "gt32u2086_rtc_calendar",
+      "title": "RTC_Calendar",
+      "summary": "RTC readback, ticking, rollover and validation checks.",
+      "uses_modules": [
+        "console",
+        "crm",
+        "rtc",
+        "uart"
+      ],
+      "freertos": false,
+      "interactive_terminal": true,
+      "app_kconfig_options": [
+        "CONFIG_GT32U2086_EXAMPLE_FIXED_CLOCK_HZ",
+        "CONFIG_GT32U2086_EXAMPLE_RX_TIMEOUT_POLLS",
+        "CONFIG_RTC_CALENDAR_PRESCALER"
+      ],
+      "sources": [
+        "examples/RTC_Calendar/Src/main.c",
+        "examples/RTC_Calendar/Src/rtc_calendar.c"
+      ],
+      "readme": "examples/RTC_Calendar/README.md"
+    },
+    {
+      "name": "SPI_DMA",
+      "path": "examples/SPI_DMA",
+      "firmware_target": "gt32u2086_spi_dma",
+      "title": "SPI_DMA",
+      "summary": "SPI0 master DMA TX/RX checks using 32 bytes of W5500 socket 0 TX SRAM.",
+      "uses_modules": [
+        "console",
+        "crm",
+        "dma",
+        "spi",
+        "uart"
+      ],
+      "freertos": false,
+      "interactive_terminal": true,
+      "app_kconfig_options": [
+        "CONFIG_GT32U2086_EXAMPLE_FIXED_CLOCK_HZ",
+        "CONFIG_GT32U2086_EXAMPLE_RX_TIMEOUT_POLLS",
+        "CONFIG_SPI_DMA_SCK_HZ",
+        "CONFIG_SPI_DMA_TIMEOUT_POLLS"
+      ],
+      "sources": [
+        "examples/SPI_DMA/Src/main.c",
+        "examples/SPI_DMA/Src/spi_dma.c"
+      ],
+      "readme": "examples/SPI_DMA/README.md"
+    },
+    {
+      "name": "SPI_W5500",
+      "path": "examples/SPI_W5500",
+      "firmware_target": "gt32u2086_spi_w5500",
+      "title": "SPI_W5500",
+      "summary": "SPI0 register and SRAM checks with a W5500 module.",
+      "uses_modules": [
+        "console",
+        "spi",
+        "uart"
+      ],
+      "freertos": false,
+      "interactive_terminal": true,
+      "app_kconfig_options": [
+        "CONFIG_GT32U2086_EXAMPLE_FIXED_CLOCK_HZ",
+        "CONFIG_GT32U2086_EXAMPLE_RX_TIMEOUT_POLLS",
+        "CONFIG_SPI_W5500_SCK_HZ",
+        "CONFIG_SPI_W5500_TIMEOUT_POLLS",
+        "CONFIG_SPI_W5500_B2B_TRIES"
+      ],
+      "sources": [
+        "examples/SPI_W5500/Src/main.c",
+        "examples/SPI_W5500/Src/spi_w5500.c"
+      ],
+      "readme": "examples/SPI_W5500/README.md"
+    },
+    {
+      "name": "TIM_Periodic_Interrupt",
+      "path": "examples/TIM_Periodic_Interrupt",
+      "firmware_target": "gt32u2086_tim_periodic_interrupt",
+      "title": "TIM_Periodic_Interrupt",
+      "summary": "TIM1 interrupt toggles PB7 every 500 ms.",
+      "uses_modules": [
+        "console",
+        "crm",
+        "gpio",
+        "tim",
+        "uart"
+      ],
+      "freertos": false,
+      "interactive_terminal": true,
+      "app_kconfig_options": [
+        "CONFIG_GT32U2086_EXAMPLE_FIXED_CLOCK_HZ",
+        "CONFIG_GT32U2086_EXAMPLE_RX_TIMEOUT_POLLS"
+      ],
+      "sources": [
+        "examples/TIM_Periodic_Interrupt/Src/main.c",
+        "examples/TIM_Periodic_Interrupt/Src/tim_periodic_interrupt.c"
+      ],
+      "readme": "examples/TIM_Periodic_Interrupt/README.md"
+    },
+    {
+      "name": "TRNG_Read",
+      "path": "examples/TRNG_Read",
+      "firmware_target": "gt32u2086_trng_read",
+      "title": "TRNG_Read",
+      "summary": "TRNG polling, timeout recovery and digital BIST smoke checks.",
+      "uses_modules": [
+        "console",
+        "crm",
+        "trng",
+        "uart"
+      ],
+      "freertos": false,
+      "interactive_terminal": true,
+      "app_kconfig_options": [
+        "CONFIG_GT32U2086_EXAMPLE_FIXED_CLOCK_HZ",
+        "CONFIG_GT32U2086_EXAMPLE_RX_TIMEOUT_POLLS"
+      ],
+      "sources": [
+        "examples/TRNG_Read/Src/main.c",
+        "examples/TRNG_Read/Src/trng_read.c"
+      ],
+      "readme": "examples/TRNG_Read/README.md"
+    },
+    {
+      "name": "UART_DMA",
+      "path": "examples/UART_DMA",
+      "firmware_target": "gt32u2086_uart_dma",
+      "title": "UART_DMA",
+      "summary": "UART0 DMA TX/RX menu.",
+      "uses_modules": [
+        "console",
+        "crm",
+        "dma",
+        "uart"
+      ],
+      "freertos": false,
+      "interactive_terminal": true,
+      "app_kconfig_options": [
+        "CONFIG_GT32U2086_EXAMPLE_FIXED_CLOCK_HZ",
+        "CONFIG_GT32U2086_EXAMPLE_RX_TIMEOUT_POLLS",
+        "CONFIG_UART_DMA_TIMEOUT_POLLS"
+      ],
+      "sources": [
+        "examples/UART_DMA/Src/main.c",
+        "examples/UART_DMA/Src/uart_dma.c"
+      ],
+      "readme": "examples/UART_DMA/README.md"
+    },
+    {
+      "name": "UART_ECHO_Polling",
+      "path": "examples/UART_ECHO_Polling",
+      "firmware_target": "gt32u2086_uart_echo_polling",
+      "title": "UART_ECHO_Polling",
+      "summary": "UART0 polling echo with PC/FPGA logs.",
+      "uses_modules": [
+        "console",
+        "uart"
+      ],
+      "freertos": false,
+      "interactive_terminal": true,
+      "app_kconfig_options": [
+        "CONFIG_GT32U2086_EXAMPLE_FIXED_CLOCK_HZ",
+        "CONFIG_GT32U2086_EXAMPLE_RX_TIMEOUT_POLLS",
+        "CONFIG_UART_ECHO_RX_TIMEOUT_POLLS",
+        "CONFIG_UART_ECHO_TX_TIMEOUT_POLLS"
+      ],
+      "sources": [
+        "examples/UART_ECHO_Polling/Src/main.c",
+        "examples/UART_ECHO_Polling/Src/uart_echo_polling.c"
+      ],
+      "readme": "examples/UART_ECHO_Polling/README.md"
+    },
+    {
+      "name": "UART_RX_Interrupt",
+      "path": "examples/UART_RX_Interrupt",
+      "firmware_target": "gt32u2086_uart_rx_interrupt",
+      "title": "UART_RX_Interrupt",
+      "summary": "UART0 RX FIFO to ISR, ring buffer and main-loop echo.",
+      "uses_modules": [
+        "console",
+        "uart"
+      ],
+      "freertos": false,
+      "interactive_terminal": true,
+      "app_kconfig_options": [
+        "CONFIG_GT32U2086_EXAMPLE_FIXED_CLOCK_HZ",
+        "CONFIG_GT32U2086_EXAMPLE_RX_TIMEOUT_POLLS",
+        "CONFIG_UART_RX_INTERRUPT_RING_BUF_SIZE",
+        "CONFIG_UART_RX_INTERRUPT_TX_TIMEOUT_POLLS"
+      ],
+      "sources": [
+        "examples/UART_RX_Interrupt/Src/main.c",
+        "examples/UART_RX_Interrupt/Src/uart_rx_interrupt.c"
+      ],
+      "readme": "examples/UART_RX_Interrupt/README.md"
+    }
+  ]
+}

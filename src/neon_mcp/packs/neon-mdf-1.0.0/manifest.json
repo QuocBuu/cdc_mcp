@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "name": "neon-mdf-1.0.0",
+  "sdk": {
+    "version": "1.0.0"
+  },
+  "fingerprint": "sha256:f86d85e116bda1400209b55a5cb65064febc2a413e239d376ee48f6ecdcd75a1",
+  "contents": {
+    "sdk.json": {
+      "components": 20,
+      "examples": 23
+    },
+    "api.json": {
+      "entries": 625,
+      "modules": 20
+    },
+    "docs.json": {
+      "documents": 48,
+      "sections": 241
+    },
+    "devices/GT32U2086.json": {
+      "peripherals": 36,
+      "registers": 1031
+    }
+  }
+}

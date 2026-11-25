@@ -6,6 +6,7 @@ from mcp.server.mcpserver import MCPServer
 
 from .. import __version__, adapters, system, targets
 from ..modules import analysis, debug, development, knowledge, programming, sdk
+from ..modules.sdk import knowledge_pack
 from ..targets import registry as target_registry
 from . import MODULE as CORE_MODULE
 from . import prompts, resources, session, tools
@@ -49,5 +50,6 @@ def create_server(app: NeonApp) -> MCPServer:
     target_registry.register(registry, app)
     for module in FUNCTIONAL_MODULES:
         module.register(registry, app)
+    knowledge_pack.activate(app)  # serve the release's pre-generated data when the checkout matches it
     app.registry = registry
     return mcp

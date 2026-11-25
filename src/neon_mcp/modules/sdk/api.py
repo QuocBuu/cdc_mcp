@@ -224,17 +224,6 @@ def _members(text: str, kind: str) -> list[dict]:
     return members
 
 
-def _public_headers(sdk: NeonMdfSdk) -> list[tuple[Path, str]]:
-    headers = []
-    for path in sorted(sdk.driver_dir.glob("neon_*.h")):
-        headers.append((path, "common"))
-    for path in sorted(sdk.driver_dir.glob("*/neon_*.h")):
-        headers.append((path, path.parent.name))
-    for path in sorted(sdk.console_dir.glob("neon_*.h")):
-        headers.append((path, "console"))
-    return headers
-
-
 class ApiIndex:
     def __init__(self, sdk: NeonMdfSdk) -> None:
         self._sdk = sdk
@@ -242,10 +231,19 @@ class ApiIndex:
         self._stamp: tuple | None = None
         self._entries: list[ApiEntry] = []
 
+    def _headers_stamp(self) -> tuple[list[tuple[Path, str]], tuple]:
+        headers = self._sdk.public_headers()
+        return headers, tuple((str(p), p.stat().st_mtime_ns) for p, _ in headers)
+
+    def seed(self, entries: list[ApiEntry]) -> None:
+        """Use pre-parsed entries (from a verified knowledge pack) for the headers as they are now.
+        Any later header change is detected by modification time and parsed live again."""
+        with self._lock:
+            self._entries, self._stamp = list(entries), self._headers_stamp()[1]
+
     def entries(self) -> list[ApiEntry]:
         with self._lock:
-            headers = _public_headers(self._sdk)
-            stamp = tuple((str(p), p.stat().st_mtime_ns) for p, _ in headers)
+            headers, stamp = self._headers_stamp()
             if stamp != self._stamp:
                 entries = []
                 for path, module in headers:

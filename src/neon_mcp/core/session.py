@@ -32,10 +32,12 @@ def register(registry: ToolRegistry, app: NeonApp) -> None:
         """Current session defaults (target, application, serial port, baud rates), the SDK in use,
         allowed workspace roots, granted permissions (read/write/hardware) and debug state."""
         debug = app.services.get("debug")
+        pack = app.services.get("pack")
         return {
             "session": app.session.to_dict(),
             "sdk_root": str(app.sdk.root),
             "sdk_version": app.sdk.version,
+            "knowledge_pack": {"status": pack.status, "pack": pack.pack.name if pack.pack else None} if pack else None,
             "workspace_roots": [str(r) for r in app.workspace.roots],
             "permissions": app.policy.describe(),
             "targets": app.targets.names(),

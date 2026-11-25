@@ -46,20 +46,6 @@ def tokenize(text: str) -> list[str]:
     return [t for t in _TOKEN.findall(text.lower()) if len(t) > 1]
 
 
-def _doc_paths(sdk: NeonMdfSdk) -> list[tuple[Path, str]]:
-    paths: list[tuple[Path, str]] = []
-    if (sdk.root / "README.md").is_file():
-        paths.append((sdk.root / "README.md", "overview"))
-    paths += [(p, "guide") for p in sorted(sdk.guide_dir.glob("*.md"))]
-    if (sdk.examples_dir / "README.md").is_file():
-        paths.append((sdk.examples_dir / "README.md", "examples"))
-    paths += [(p, "example") for p in sorted(sdk.examples_dir.glob("*/README.md"))]
-    for extra in ("components/driver/README.md", "rtos/README.md", "arch/CortexM/CMSIS/README.md"):
-        if (sdk.sdk_dir / extra).is_file():
-            paths.append((sdk.sdk_dir / extra, "sdk"))
-    return paths
-
-
 def _split(rel: str, text: str) -> tuple[str, list[Section]]:
     lines = text.splitlines()
     sections: list[Section] = []
@@ -98,20 +84,34 @@ class DocumentIndex:
         self._idf: dict[str, float] = {}
         self._tokens: list[tuple[Section, dict[str, int], set[str]]] = []
 
+    def _paths_stamp(self) -> tuple[list[tuple[Path, str]], tuple]:
+        paths = self._sdk.documents()
+        return paths, tuple((str(p), p.stat().st_mtime_ns) for p, _ in paths)
+
+    def seed(self, documents: list[Document]) -> None:
+        """Use pre-split documents (from a verified knowledge pack) for the files as they are now.
+        Any later change is detected by modification time and indexed live again."""
+        with self._lock:
+            self._load({d.path: d for d in documents}, self._paths_stamp()[1])
+
     def _refresh(self) -> None:
-        paths = _doc_paths(self._sdk)
-        stamp = tuple((str(p), p.stat().st_mtime_ns) for p, _ in paths)
+        paths, stamp = self._paths_stamp()
         if stamp == self._stamp:
             return
         docs: dict[str, Document] = {}
-        tokens = []
-        df: dict[str, int] = {}
         for path, category in paths:
             rel = self._sdk.relative(path)
             text = path.read_text(encoding="utf-8", errors="replace")
             title, sections = _split(rel, text)
             docs[rel] = Document(rel, title, category, text.count("\n") + 1, sections)
-            for section in sections:
+        self._load(docs, stamp)
+
+    def _load(self, docs: dict[str, Document], stamp: tuple) -> None:
+        tokens = []
+        df: dict[str, int] = {}
+        for doc in docs.values():
+            title = doc.title
+            for section in doc.sections:
                 counts: dict[str, int] = {}
                 for tok in tokenize(section.text):
                     counts[tok] = counts.get(tok, 0) + 1

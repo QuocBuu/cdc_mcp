@@ -137,6 +137,7 @@ class DeviceDescription:
     def __init__(self, path: Path, data: dict) -> None:
         self.path = path
         self.raw = data
+        self._profiles: list[dict] | None = None
         self.name: str = data["device"]
         self.vendor: str | None = data.get("vendor")
         self.family: str | None = data.get("family")
@@ -201,6 +202,8 @@ class DeviceDescription:
 
     def profiles(self) -> list[dict]:
         """Memory profiles with absolute addresses for every layout entry."""
+        if self._profiles is not None:
+            return [dict(p) for p in self._profiles]
         result = []
         for prof in self.raw.get("profile_param", []) or []:
             entry: dict[str, Any] = {"name": prof["name"]}
@@ -245,14 +248,68 @@ class DeviceDescription:
         }
 
 
+    # --- Knowledge pack ---------------------------------------------------------------------------
+    def to_pack(self) -> dict:
+        """Normalized, self-contained form stored in a knowledge pack (absolute addresses, fields)."""
+        summary = self.summary()
+        return {
+            **{k: summary[k] for k in ("device", "vendor", "family", "arch", "description", "cpu")},
+            "memory": [{"name": m["name"], "kind": m["kind"], "address": _hex(m["address"]), "size": m["size"]}
+                       for m in self.memory],
+            "profiles": summary["profiles"],
+            "interrupts": self.interrupts,
+            "peripherals": [{"name": p.name, "base": _hex(p.base), "type": p.type, "description": p.description,
+                             "registers": [r.to_dict() for r in p.registers]} for p in self.peripherals],
+        }
+
+    @classmethod
+    def from_pack(cls, path: Path, data: dict) -> DeviceDescription:
+        """Rebuild the model from `to_pack()` output; `path` is the YAML it was generated from."""
+        def view(v: dict) -> RegisterView:
+            fields = tuple(FieldDef(f["name"], f["bit_offset"], f["bit_width"], f["description"]) for f in v["fields"])
+            reset = int(v["reset"], 16) if v["reset"] is not None else None
+            return RegisterView(v["name"], v["access"], reset, v["description"], fields)
+
+        device = cls.__new__(cls)
+        device.path, device.raw = path, None
+        device.name, device.vendor, device.family = data["device"], data["vendor"], data["family"]
+        device.arch, device.description, device.cpu = data["arch"], data["description"], data["cpu"]
+        device.memory = [{**m, "address": int(m["address"], 16)} for m in data["memory"]]
+        device.interrupts = [dict(i) for i in data["interrupts"]]
+        device._profiles = data["profiles"]
+        device.peripherals = [
+            PeripheralDef(p["name"], int(p["base"], 16), p["type"], p["description"], tuple(
+                RegisterDef(p["name"], r["name"], int(r["offset"], 16), int(r["address"], 16), r["size_bits"],
+                            view(r), tuple(view(a) for a in r.get("aliases", [])))
+                for r in p["registers"]))
+            for p in data["peripherals"]
+        ]
+        return device
+
+
+_YAML_LOADER = getattr(yaml, "CSafeLoader", yaml.SafeLoader)  # libyaml is ~10x faster when available
+_PRELOADED: dict[tuple[str, int], DeviceDescription] = {}
+
+
+def parse_device(path: Path) -> DeviceDescription:
+    """Parse the YAML itself, ignoring caches and knowledge packs."""
+    with open(path, encoding="utf-8") as f:
+        return DeviceDescription(path, yaml.load(f, Loader=_YAML_LOADER))
+
+
 @lru_cache(maxsize=8)
 def _load_cached(path: str, mtime_ns: int) -> DeviceDescription:
-    with open(path, encoding="utf-8") as f:
-        return DeviceDescription(Path(path), yaml.safe_load(f))
+    return parse_device(Path(path))
+
+
+def preload_device(path: Path, device: DeviceDescription) -> None:
+    """Serve `device` (built from a verified knowledge pack) for `path` until the file changes."""
+    _PRELOADED[(str(path), path.stat().st_mtime_ns)] = device
 
 
 def load_device(path: Path) -> DeviceDescription:
-    return _load_cached(str(path), path.stat().st_mtime_ns)
+    key = (str(path), path.stat().st_mtime_ns)
+    return _PRELOADED.get(key) or _load_cached(*key)
 
 
 def parse_int(value: int | str, what: str = "value") -> int:

@@ -27,6 +27,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
                         help="forbid project creation, sdkconfig edits and builds (env NEON_MCP_READ_ONLY=1)")
     parser.add_argument("--sdk-python", type=Path, help="Python interpreter for CMake/SDK tools (env NEON_MCP_SDK_PYTHON)")
     parser.add_argument("--targets-dir", type=Path, help="extra target profile directory (env NEON_MCP_TARGETS_DIR)")
+    parser.add_argument("--packs-dir", type=Path,
+                        help="extra knowledge pack directory, searched before the bundled packs (env NEON_MCP_PACKS_DIR)")
     parser.add_argument("--transport", choices=("stdio", "streamable-http"), default="stdio")
     parser.add_argument("--host", default="127.0.0.1", help="streamable-http bind address")
     parser.add_argument("--port", type=int, default=8000, help="streamable-http port")
@@ -48,6 +50,8 @@ def build_settings(args: argparse.Namespace) -> Settings:
         settings.sdk_python = args.sdk_python
     if args.targets_dir is not None:
         settings.targets_dir = args.targets_dir
+    if args.packs_dir is not None:
+        settings.packs_dir = args.packs_dir
     return settings
 
 

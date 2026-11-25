@@ -15,13 +15,13 @@ Có thể xem cùng danh mục này theo ba cách:
 |---|---|---|
 | 01 MCP Core | Bắt buộc | ✅ Đủ 6/6 submodule: server, tool/resource registry, prompt manager, session, transport |
 | 02 Knowledge | Tra cứu cơ bản | ✅ 4/5 submodule; nguồn Datasheet/TRM/Errata để sau |
-| 03 SDK | API, source, example | ✅ 6/6 submodule, có cả Dependency Resolver |
+| 03 SDK | API, source, example | ✅ 7/7 submodule, có cả Dependency Resolver và Knowledge Pack |
 | 04 Development | Build, target, config | ✅ 5/5 submodule: toolchain, project, configuration, code generation, build |
 | 05 Debug | Basic debug | ✅ 7/8 submodule qua GDB/MI (OpenOCD hoặc GDB server có sẵn); multicore để sau |
 | 06 Programming | Tái sử dụng UART Tool | ✅ 4/4 submodule: image, verify, boot, flash |
 | 07 Analysis | Register, exception, ELF | ✅ 4/5 submodule; memory analyzer (file map) để sau |
 | 08 Target & Device | Bắt buộc | ✅ Registry, capability, profile GT32U2086, backend Cortex-M; RISC-V/FU3 để sau |
-| 09 Backend & Adapter | Bắt buộc | ✅ 8/9 adapter; VS Code để sau |
+| 09 Backend & Adapter | Bắt buộc | ✅ 9/10 adapter; VS Code để sau |
 | 10 System & Security | Bắt buộc | ✅ 6/6 submodule |
 
 **Lưu ý về Debug:** cấu hình OpenOCD của GT32U2086 trong SDK vẫn là placeholder. Vì vậy
@@ -55,6 +55,35 @@ AI Agent / IDE ──MCP──► core (server, registry, session, prompts, reso
 - **Tool được đăng ký qua `registry.tool(module, submodule, annotations)`.** Một submodule đang
   `planned` thì không đăng ký tool được.
 
+## Knowledge pack theo phiên bản NEON-MDF
+
+Dữ liệu chip, C API, tài liệu và thông tin SDK của mỗi bản NEON-MDF được sinh sẵn thành JSON trong
+`src/neon_mcp/packs/neon-mdf-<version>/`:
+
+| File | Nội dung |
+|---|---|
+| `devices/<DEVICE>.json` | Memory map, profile bộ nhớ, interrupt, peripheral → register → bit field (địa chỉ tuyệt đối) |
+| `api.json` | Hàm, inline, enum, struct, typedef, macro kèm Doxygen và `file:line` |
+| `docs.json` | Tài liệu đã chia theo heading, dùng cho tìm kiếm |
+| `sdk.json` | Preset, component (Kconfig, backend, CRM) và example |
+| `manifest.json` | Phiên bản SDK, số lượng mục và fingerprint của checkout nguồn |
+
+Khi khởi động, server đọc `neon-mdf/VERSION` của checkout và chọn pack cùng phiên bản:
+
+- **Fingerprint khớp** (checkout đúng bản phát hành): dữ liệu device, API và tài liệu lấy từ pack.
+- **Fingerprint khác** (checkout đã sửa hoặc ở giữa hai bản): parse trực tiếp từ checkout để luôn
+  khớp với code đang build. File bị sửa trong lúc server chạy cũng được phát hiện qua thời gian
+  sửa đổi.
+- **Chưa có pack** cho phiên bản đó: parse trực tiếp.
+
+Trạng thái nằm trong `sdk_get_info` (`knowledge_pack`) và `session_get_context`.
+
+- **Sinh pack:** `neon-mcp-pack --sdk <checkout>` (thêm `--force` để sinh lại, `--check` để kiểm
+  tra pack có còn khớp với code sinh pack không).
+- **Tự động:** workflow `Knowledge packs` chạy mỗi ngày, sinh pack cho tag NEON-MDF mới, commit, rồi
+  chạy lại CI và Pages. Cài qua `uvx --from git+...` sẽ nhận pack mới ở lần khởi động sau.
+- **Test:** `test_bundled_pack_is_up_to_date` báo lỗi nếu sửa parser mà chưa sinh lại pack.
+
 ## Thêm chức năng mới
 
 1. **Thêm tool vào submodule có sẵn:** viết hàm trong file của submodule, dùng decorator
@@ -67,7 +96,9 @@ AI Agent / IDE ──MCP──► core (server, registry, session, prompts, reso
    - Thêm device YAML vào NEON-MDF.
    - Thêm `targets/<name>/target.yaml`.
    - Nếu là kiến trúc CPU mới, thêm backend trong `targets/arch/`.
-5. **Test bắt buộc:** test `test_catalog_matches_architecture` kiểm tra mọi submodule đã
+5. **Danh mục cuối tài liệu:** chạy `python docs/update_catalog.py --sdk ../neon_mdf` sau khi thêm
+   hoặc đổi submodule.
+6. **Test bắt buộc:** test `test_catalog_matches_architecture` kiểm tra mọi submodule đã
    implemented đều có file nguồn, và mọi tool đều có trong danh mục.
 
 ## Danh mục module (sinh từ code)
@@ -97,7 +128,7 @@ SDK documentation, device data and register knowledge, read from the NEON-MDF ch
 | **register_knowledge** — Peripheral registers, fields, aliases and IRQs. | ✅ | `modules/knowledge/register_knowledge.py` | `knowledge_get_peripheral` |
 | **external_documents** — Index vendor PDFs (datasheet, technical reference manual, errata) for search. | ⏳ planned | — | — |
 
-### 03 SDK Module (`sdk`) — 6/6 submodule
+### 03 SDK Module (`sdk`) — 7/7 submodule
 
 Discovery, components, public C API, source code, examples and dependencies of NEON-MDF.
 
@@ -109,6 +140,7 @@ Discovery, components, public C API, source code, examples and dependencies of N
 | **source** — grep-like search and line-numbered reading. | ✅ | `modules/sdk/source.py` | `sdk_search_source`, `sdk_read_source` |
 | **example** — Example applications by keyword or driver used. | ✅ | `modules/sdk/example.py` | `sdk_find_examples` |
 | **dependency** — Kconfig switches, includes, CRM clocks and CMake needed for a set of components. | ✅ | `modules/sdk/dependency.py` | `sdk_resolve_dependencies` |
+| **knowledge_pack** — Device, API and docs data pre-generated per NEON-MDF release; used when the checkout matches. | ✅ | `modules/sdk/knowledge_pack.py` | — |
 
 ### 04 Development Module (`development`) — 5/5 submodule
 
@@ -173,7 +205,7 @@ Device registry built from SDK device YAML plus NEON MCP target profiles and cap
 | **riscv** — CSR/PMP registers and trap decoding for Ibex/CVA6. | ⏳ planned | — | — |
 | **fu3** — Ibex/CVA6 RISC-V target, once its device YAML exists in NEON-MDF. | ⏳ planned | — | — |
 
-### 09 Backend & Adapter (`adapters`) — 8/9 submodule
+### 09 Backend & Adapter (`adapters`) — 9/10 submodule
 
 One adapter per external system; modules never call tools or parse formats directly.
 
@@ -187,6 +219,7 @@ One adapter per external system; modules never call tools or parse formats direc
 | **uart** — Serial port enumeration and bounded capture. | ✅ | `adapters/uart.py` | — |
 | **gdb** — GDB Machine Interface client (arm-none-eabi-gdb / gdb-multiarch). | ✅ | `adapters/gdb.py` | — |
 | **openocd** — Start/stop OpenOCD with board-verified configs. | ✅ | `adapters/openocd.py` | — |
+| **knowledge_pack** — Find, read, write and fingerprint versioned packs. | ✅ | `adapters/knowledge_pack.py` | — |
 | **vscode** — Share state with the NEON-MDF VS Code extension. | ⏳ planned | — | — |
 
 ### 10 System & Security (`system`) — 6/6 submodule
@@ -201,4 +234,3 @@ Configuration, workspace sandbox, process control, permission policy, logging an
 | **security** — read / write / hardware permission levels. | ✅ | `system/security.py` | — |
 | **logging** — stderr logging (stdout is the MCP stream) and audit records. | ✅ | `system/logging.py` | — |
 | **errors** — Typed errors whose message and hint reach the agent. | ✅ | `system/errors.py` | — |
-

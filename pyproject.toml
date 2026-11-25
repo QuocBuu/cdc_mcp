@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "neon-mcp"
-version = "0.2.0"
+version = "0.3.0"
 description = "Model Context Protocol server that lets AI agents use the NEON-MDF firmware SDK"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -21,12 +21,13 @@ dev = ["pytest>=8", "ruff>=0.6"]
 
 [project.scripts]
 neon-mcp = "neon_mcp.__main__:main"
+neon-mcp-pack = "neon_mcp.modules.sdk.knowledge_pack:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
-neon_mcp = ["targets/*/target.yaml"]
+neon_mcp = ["targets/*/target.yaml", "packs/*/*.json", "packs/*/devices/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

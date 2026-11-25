@@ -189,6 +189,13 @@ details.tools[open] summary::before { content: "▾ "; }
 .row .mono { font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
 .row p { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
 
+.table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow); }
+table.packs { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 620px; }
+table.packs th, table.packs td { text-align: left; padding: 11px 14px; border-top: 1px solid var(--border); vertical-align: top; }
+table.packs thead th { border-top: 0; font-size: 12.5px; color: var(--muted); font-weight: 600; background: var(--surface-2); }
+table.packs td small { display: block; color: var(--muted); font-size: 12.5px; }
+table.packs .ver { font: 700 15px ui-monospace, monospace; }
+
 footer { border-top: 1px solid var(--border); padding: 26px 0 40px; color: var(--muted); font-size: 13px; }
 footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 22px; justify-content: space-between; }
 </style>
@@ -200,6 +207,7 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 22px; justify-content: s
     <nav class="nav">
       <a href="#install">Cài đặt</a>
       <a class="opt" href="#catalog">Chức năng</a>
+      <a class="opt" href="#packs">Dữ liệu</a>
       <a class="opt" href="#demo">Demo</a>
       <a id="gh-link" href="#">GitHub</a>
       <button class="icon-btn" id="theme" type="button" title="Đổi giao diện sáng/tối" aria-label="Đổi giao diện sáng/tối">◐</button>
@@ -306,6 +314,19 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 22px; justify-content: s
       </div>
       <div class="grid" id="modules"></div>
       <p class="empty" id="no-match">Không có tool nào khớp.</p>
+    </div>
+  </section>
+
+  <section id="packs">
+    <div class="wrap">
+      <h2>Dữ liệu theo phiên bản NEON-MDF</h2>
+      <p class="sub">Mỗi bản NEON-MDF có một knowledge pack sinh sẵn: chip (memory map, peripheral, register, bit field),
+        C API, tài liệu và thông tin SDK. NEON MCP đọc <code>neon-mdf/VERSION</code> của checkout và dùng pack cùng phiên bản.
+        Nếu checkout đã bị sửa so với bản phát hành, MCP đọc trực tiếp từ checkout để luôn khớp với code đang build.</p>
+      <div class="table-wrap"><table class="packs">
+        <thead><tr><th>NEON-MDF</th><th>Chip</th><th>C API</th><th>Tài liệu</th><th>SDK</th><th>Pack</th></tr></thead>
+        <tbody id="pack-rows"></tbody>
+      </table></div>
     </div>
   </section>
 
@@ -610,6 +631,20 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 22px; justify-content: s
     }
     $("#no-match").style.display = any ? "none" : "block";
   });
+
+  /* knowledge packs -------------------------------------------------------- */
+  const fileLink = (pack, rel, label) => `<a href="packs/${esc(pack)}/${esc(rel)}">${esc(label)}</a>`;
+  $("#pack-rows").innerHTML = D.packs.length ? D.packs.map((p) => {
+    const c = p.contents;
+    const devices = Object.keys(c).filter((k) => k.startsWith("devices/"));
+    const chip = devices.map((k) => `${fileLink(p.name, k, k.slice(8, -5))}<small>${c[k].peripherals} peripheral · ${c[k].registers} register</small>`).join("");
+    const api = c["api.json"] ? `${fileLink(p.name, "api.json", "api.json")}<small>${c["api.json"].entries} mục · ${c["api.json"].modules} module</small>` : "";
+    const docs = c["docs.json"] ? `${fileLink(p.name, "docs.json", "docs.json")}<small>${c["docs.json"].documents} tài liệu · ${c["docs.json"].sections} mục</small>` : "";
+    const sdk = c["sdk.json"] ? `${fileLink(p.name, "sdk.json", "sdk.json")}<small>${c["sdk.json"].components} component · ${c["sdk.json"].examples} example</small>` : "";
+    const badge = p.status === "verified" ? ` <span class="badge read">đã kiểm thử</span>` : "";
+    return `<tr><td><span class="ver">v${esc(p.version)}</span>${badge}</td><td>${chip}</td><td>${api}</td><td>${docs}</td><td>${sdk}</td>` +
+      `<td>${fileLink(p.name, "manifest.json", "manifest.json")}</td></tr>`;
+  }).join("") : `<tr><td colspan="6">Chưa có pack.</td></tr>`;
 
   /* demo ------------------------------------------------------------------- */
   $("#demo-sub").innerHTML = `Kết quả thật của các tool chỉ đọc, chạy lúc build trên NEON-MDF ${esc(sdkLabel)}` +

@@ -132,6 +132,32 @@ class NeonMdfSdk:
     def device_files(self) -> list[Path]:
         return sorted(self.devices_dir.glob("*.yaml"))
 
+    def public_headers(self) -> list[tuple[Path, str]]:
+        """Public C API headers with their module: common driver headers, one per driver, console."""
+        headers = [(path, "common") for path in sorted(self.driver_dir.glob("neon_*.h"))]
+        headers += [(path, path.parent.name) for path in sorted(self.driver_dir.glob("*/neon_*.h"))]
+        headers += [(path, "console") for path in sorted(self.console_dir.glob("neon_*.h"))]
+        return headers
+
+    def documents(self) -> list[tuple[Path, str]]:
+        """Markdown documentation with its category: overview, guide, examples, example, sdk."""
+        paths: list[tuple[Path, str]] = []
+        if (self.root / "README.md").is_file():
+            paths.append((self.root / "README.md", "overview"))
+        paths += [(p, "guide") for p in sorted(self.guide_dir.glob("*.md"))]
+        if (self.examples_dir / "README.md").is_file():
+            paths.append((self.examples_dir / "README.md", "examples"))
+        paths += [(p, "example") for p in sorted(self.examples_dir.glob("*/README.md"))]
+        for extra in ("components/driver/README.md", "rtos/README.md", "arch/CortexM/CMSIS/README.md"):
+            if (self.sdk_dir / extra).is_file():
+                paths.append((self.sdk_dir / extra, "sdk"))
+        return paths
+
+    def knowledge_sources(self) -> list[Path]:
+        """Every file the device, API and documentation knowledge is derived from."""
+        files = {*self.device_files(), *(p for p, _ in self.public_headers()), *(p for p, _ in self.documents())}
+        return sorted(files, key=self.relative)
+
     def extension_version(self) -> str | None:
         try:
             data = json.loads((self.root / "vscode-extension" / "package.json").read_text(encoding="utf-8"))
