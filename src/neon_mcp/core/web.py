@@ -45,6 +45,47 @@ DEMOS: list[tuple[str, dict[str, Any], str]] = [
     ("knowledge_search", {"query": "boot mode 100 UART update", "limit": 3}, "Search the NEON-MDF documentation"),
 ]
 
+# What users can ask the agent to do, grouped by task. Every tool belongs to exactly one group
+# (tests/test_web.py checks it); groups with "card": False only appear in the tool reference.
+CAPABILITIES: list[dict[str, Any]] = [
+    {"id": "chip", "title": "Look up the chip", "access": "read",
+     "summary": "Documentation, memory map, boot modes, peripherals, registers and bit fields, and what a raw register value means.",
+     "examples": ["What does UART0.LSR = 0x61 mean?", "Explain boot mode 100 on the GT32U2086.",
+                  "Which registers configure SPI1?"],
+     "tools": ["knowledge_search", "knowledge_list_documents", "knowledge_read_document", "knowledge_get_device",
+               "knowledge_get_peripheral", "analysis_decode_register", "target_list"]},
+    {"id": "sdk", "title": "Use the SDK", "access": "read",
+     "summary": "The C API with its documentation, driver sources, examples, and what a feature needs: Kconfig, clocks, includes.",
+     "examples": ["How do I send data over UART with NEON-MDF?", "Find an example that uses SPI.",
+                  "What do I need to enable to use the ADC?"],
+     "tools": ["sdk_get_info", "sdk_list_components", "sdk_search_api", "sdk_search_source", "sdk_read_source",
+               "sdk_find_examples", "sdk_resolve_dependencies"]},
+    {"id": "build", "title": "Create and build projects", "access": "write",
+     "summary": "New projects from the SDK templates, sdkconfig options and CMake builds, with errors at file:line and memory usage.",
+     "examples": ["Create a project that toggles a GPIO, then build it.", "Enable the I2C driver and rebuild.",
+                  "Is my toolchain ready to build?"],
+     "tools": ["dev_check_environment", "dev_create_project", "dev_get_config", "dev_set_config",
+               "dev_generate_device_files", "dev_configure", "dev_build"]},
+    {"id": "flash", "title": "Flash and run on the board", "access": "hardware",
+     "summary": "Check the image, program it over UART, then capture and summarize the board's log.",
+     "examples": ["Flash my app over /dev/ttyUSB0 and show the log.", "Is this image valid for boot mode 100?"],
+     "tools": ["prog_inspect_image", "prog_verify_image", "prog_list_boot_modes", "prog_list_serial_ports",
+               "prog_flash_uart", "analysis_capture_uart", "analysis_analyze_log"]},
+    {"id": "debug", "title": "Debug on hardware", "access": "hardware",
+     "summary": "A GDB session through OpenOCD or a running GDB server: breakpoints, stepping, registers, memory, peripherals, backtraces.",
+     "examples": ["Break in main and show the UART0 registers.", "Step through spi_init and show the local variables."],
+     "tools": ["debug_connect", "debug_disconnect", "debug_control", "debug_read_registers", "debug_read_memory",
+               "debug_write_memory", "debug_read_peripheral", "debug_breakpoint", "debug_backtrace"]},
+    {"id": "analyze", "title": "Analyze crashes and binaries", "access": "read",
+     "summary": "Decode a HardFault down to the faulting instruction and source line; flash/RAM usage and symbols of the ELF.",
+     "examples": ["My firmware hit a HardFault, here is the stack frame: …", "Which function is at 0x00020A3C?",
+                  "How much flash and RAM does my app use?"],
+     "tools": ["analysis_decode_exception", "analysis_elf_summary", "analysis_resolve_address"]},
+    {"id": "session", "title": "Session and server", "access": "read", "card": False,
+     "summary": "Defaults shared by the other tools (target, application, serial port) and the server's own catalog.",
+     "examples": [], "tools": ["session_get_context", "session_set_context", "neon_list_modules"]},
+]
+
 MAX_ITEMS = 8
 MAX_STRING = 600
 
@@ -109,11 +150,18 @@ async def collect(server: MCPServer, app: NeonApp, *, strict: bool = False) -> d
                 raise RuntimeError(f"demo {tool} failed: {text}")
             continue
         demos.append({"tool": tool, "title": title, "arguments": arguments, "result": trim(result.structured_content)})
+    names = {t.name for t in tools}
+    capabilities = [{**c, "tools": [t for t in c["tools"] if t in names]} for c in CAPABILITIES]
+    unlisted = sorted(names - {t for c in CAPABILITIES for t in c["tools"]})
+    if unlisted:  # never hide a tool: new tools show up here until they are given a group
+        capabilities.append({"id": "other", "title": "Other tools", "access": "read", "card": False,
+                             "summary": "", "examples": [], "tools": unlisted})
     pack_status = info["knowledge_pack"]
     found = sorted(packs.find_packs(pack_dirs(app)), key=lambda p: _version_key(p.version), reverse=True)
     git = app.sdk.git_info() or {}
     return {
         "catalog": catalog,
+        "capabilities": capabilities,
         "tools": {t.name: {"description": _first_paragraph(t.description), "kind": tool_kind(t),
                            "params": sorted((t.input_schema or {}).get("properties", {}))} for t in tools},
         "prompts": [{"name": p.name, "description": p.description, "arguments": [a.name for a in p.arguments or []]}

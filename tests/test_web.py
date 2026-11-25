@@ -28,6 +28,9 @@ def test_install_page_over_http(tmp_path: Path):
         assert data["server_url"] == "http://testserver/mcp"  # the page connects clients to this server
         assert data["catalog"]["tool_count"] == len(data["tools"]) > 0
         assert data["demos"] and data["pack_status"]["status"]
+        grouped = [t for c in data["capabilities"] for t in c["tools"]]
+        assert sorted(grouped) == sorted(data["tools"]), "every tool belongs to exactly one capability group"
+        assert all(c["id"] != "other" for c in data["capabilities"]), "give new tools a group in core/web.py"
 
         assert client.get("/favicon.svg").headers["content-type"].startswith("image/svg+xml")
         listed = client.get("/packs/index.json").json()

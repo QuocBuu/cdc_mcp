@@ -7,7 +7,15 @@
 <meta name="description" content="NEON MCP: Model Context Protocol server for the NEON-MDF firmware SDK. Install it in Claude Code, Cursor, VS Code, Claude Desktop or Codex.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <style>
-:root {
+:root {  /* dark by default; the theme button switches to light */
+  --bg: #0a0e13; --surface: #11171f; --surface-2: #171f29; --border: #243040; --text: #e5eaf1;
+  --muted: #93a0b1; --accent: #3fd0bb; --accent-hover: #6fe0cf; --accent-ink: #032019; --accent-soft: #0f2e2a;
+  --code-bg: #070a0e; --code-text: #e3e9f0; --code-border: #1c2633;
+  --read-bg: #10301d; --read-fg: #80d7a1; --write-bg: #33260c; --write-fg: #f1c56c;
+  --hw-bg: #3a1414; --hw-fg: #ff9d9d; --plan-bg: #1c2430; --plan-fg: #93a0b1;
+  --shadow: none; color-scheme: dark;
+}
+:root[data-theme="light"] {
   --bg: #f6f7f9; --surface: #ffffff; --surface-2: #f0f2f5; --border: #e1e5eb; --text: #141922;
   --muted: #5a6473; --accent: #0b8a7a; --accent-hover: #097466; --accent-ink: #ffffff; --accent-soft: #e2f3f0;
   --code-bg: #0e141b; --code-text: #e3e9f0; --code-border: #1f2a36;
@@ -15,24 +23,6 @@
   --hw-bg: #fce6e6; --hw-fg: #a11f1f; --plan-bg: #eceff3; --plan-fg: #5a6473;
   --shadow: 0 1px 2px rgba(16, 24, 40, .05);
   color-scheme: light;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #0a0e13; --surface: #11171f; --surface-2: #171f29; --border: #243040; --text: #e5eaf1;
-    --muted: #93a0b1; --accent: #3fd0bb; --accent-hover: #6fe0cf; --accent-ink: #032019; --accent-soft: #0f2e2a;
-    --code-bg: #070a0e; --code-text: #e3e9f0; --code-border: #1c2633;
-    --read-bg: #10301d; --read-fg: #80d7a1; --write-bg: #33260c; --write-fg: #f1c56c;
-    --hw-bg: #3a1414; --hw-fg: #ff9d9d; --plan-bg: #1c2430; --plan-fg: #93a0b1;
-    --shadow: none; color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --bg: #0a0e13; --surface: #11171f; --surface-2: #171f29; --border: #243040; --text: #e5eaf1;
-  --muted: #93a0b1; --accent: #3fd0bb; --accent-hover: #6fe0cf; --accent-ink: #032019; --accent-soft: #0f2e2a;
-  --code-bg: #070a0e; --code-text: #e3e9f0; --code-border: #1c2633;
-  --read-bg: #10301d; --read-fg: #80d7a1; --write-bg: #33260c; --write-fg: #f1c56c;
-  --hw-bg: #3a1414; --hw-fg: #ff9d9d; --plan-bg: #1c2430; --plan-fg: #93a0b1;
-  --shadow: none; color-scheme: dark;
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
@@ -79,9 +69,6 @@ code { font-size: .88em; background: var(--surface-2); border: 1px solid var(--b
 .release .chips { margin: 0; }
 .release a { margin-left: auto; white-space: nowrap; }
 @media (max-width: 560px) { .release a { margin-left: 0; } }
-.stats { display: flex; flex-wrap: wrap; gap: 8px 28px; margin-top: 18px; }
-.stat b { font-size: 20px; margin-right: 6px; }
-.stat span { color: var(--muted); font-size: 14px; }
 .note { margin-top: 18px; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--accent); background: var(--accent-soft);
   display: flex; gap: 8px 14px; align-items: center; flex-wrap: wrap; font-size: 14px; }
 
@@ -122,10 +109,10 @@ section h2 { font-size: 26px; margin: 0 0 4px; letter-spacing: -.01em; }
 details.more { border: 1px solid var(--border); border-radius: 10px; background: var(--surface); margin-top: 12px; }
 details.more > summary { cursor: pointer; list-style: none; padding: 11px 14px; font-weight: 600; font-size: 14.5px;
   display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
-details.more > summary::-webkit-details-marker, details.module > summary::-webkit-details-marker { display: none; }
-details.more > summary::before, details.module > summary::before { content: "›"; display: inline-block; width: 10px;
+details.more > summary::-webkit-details-marker { display: none; }
+details.more > summary::before { content: "›"; display: inline-block; width: 10px;
   color: var(--muted); font-weight: 700; transition: transform .15s; }
-details[open].more > summary::before, details[open].module > summary::before { transform: rotate(90deg); }
+details[open].more > summary::before { transform: rotate(90deg); }
 details.more > summary .muted { font-weight: 400; font-size: 13.5px; }
 details.more > .body { padding: 0 14px 14px 34px; }
 details.more.flat { background: none; border: 0; margin-top: 4px; }
@@ -158,23 +145,21 @@ details.more.flat > .body { padding: 4px 0 0; }
 .copy.done { color: #3fd0bb; border-color: #3fd0bb; }
 .note .copy { background: var(--surface); color: var(--text); border-color: var(--border); }
 
-/* capabilities */
-.toolbar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
-.toolbar input { flex: 1 1 260px; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface);
+/* features */
+.cap-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+@media (max-width: 420px) { .cap-grid { grid-template-columns: 1fr; } }
+.cap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; box-shadow: var(--shadow); }
+.cap-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.cap h3 { margin: 0; font-size: 16px; }
+.cap-head .badge { flex-shrink: 0; }
+.cap > p { margin: 6px 0 10px; color: var(--muted); font-size: 14px; }
+ul.asks { list-style: none; margin: 0; padding: 0; }
+ul.asks li { font-size: 13.5px; padding: 3px 0 3px 10px; border-left: 2px solid var(--accent-soft); margin: 4px 0; }
+.toolbar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin: 4px 0 6px; }
+.toolbar input { flex: 1 1 260px; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg);
   color: var(--text); font-size: 14px; }
 .legend { display: flex; gap: 6px; flex-wrap: wrap; }
-.modules { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; }
-details.module { border-top: 1px solid var(--border); }
-details.module:first-child { border-top: 0; }
-details.module > summary { cursor: pointer; list-style: none; padding: 13px 16px; display: grid;
-  grid-template-columns: 10px 30px minmax(0, 1fr) auto; gap: 12px; align-items: baseline; }
-details.module > summary:hover { background: var(--surface-2); }
-.mod-num { font: 700 13px ui-monospace, monospace; color: var(--accent); }
-.mod-title { font-weight: 650; }
-.mod-desc { display: block; color: var(--muted); font-size: 13.5px; }
-.mod-meta { color: var(--muted); font-size: 13px; white-space: nowrap; }
-.mod-body { padding: 0 16px 14px 68px; }
-@media (max-width: 560px) { details.module > summary { grid-template-columns: 10px 24px minmax(0, 1fr); } .mod-meta { display: none; } .mod-body { padding-left: 16px; } }
+.tool-group h4 { margin: 18px 0 2px; font-size: 14px; }
 .chips { display: flex; flex-wrap: wrap; gap: 5px; margin: 2px 0 8px; }
 .chip { font: 12px ui-monospace, monospace; padding: 2px 7px; border-radius: 6px; background: var(--surface-2); border: 1px solid var(--border); }
 .chip.planned { background: var(--plan-bg); color: var(--plan-fg); border-style: dashed; }
@@ -230,7 +215,7 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 22px; justify-content: s
     <a class="brand" href="#"><img src="favicon.svg" alt="">NEON MCP <span class="pill">v__VERSION__</span></a>
     <nav class="nav">
       <a href="#install">Install</a>
-      <a class="opt" href="#capabilities">Capabilities</a>
+      <a class="opt" href="#features">Features</a>
       <a class="opt" href="#sdk-data">SDK data</a>
       <a class="opt" href="#examples">Examples</a>
       <a id="gh-link" href="#">GitHub</a>
@@ -255,7 +240,6 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 22px; justify-content: s
         <span><span class="muted">Supported chips</span> <span class="chips" id="release-chips" style="display:inline-flex"></span></span>
         <a id="release-link" href="#" target="_blank" rel="noopener">Release on GitHub ↗</a>
       </div>
-      <div class="stats" id="stats"></div>
       <div class="note" id="live-note" hidden></div>
     </div>
   </div>
@@ -324,24 +308,27 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 22px; justify-content: s
     </div>
   </section>
 
-  <section id="capabilities">
+  <section id="features">
     <div class="wrap">
-      <h2>Capabilities</h2>
-      <p class="sub" id="capabilities-sub"></p>
-      <div class="toolbar">
-        <input type="search" id="tool-filter" placeholder="Filter tools: uart, hardfault, kconfig…" aria-label="Filter tools">
-        <div class="legend">
-          <span class="badge read">read-only</span><span class="badge write">writes files</span>
-          <span class="badge hardware">hardware</span><span class="badge planned">planned</span>
-        </div>
-      </div>
-      <div class="modules" id="modules"></div>
-      <p class="empty" id="no-match" hidden>No tool matches.</p>
+      <h2>What you can do</h2>
+      <p class="sub">Ask your agent in plain language; it picks the right tools. Some examples for each task:</p>
+      <div class="cap-grid" id="cap-grid"></div>
       <details class="more">
-        <summary>Prompts and resources <span class="muted" id="extras-count"></span></summary>
-        <div class="body two">
-          <div><p class="list-title">Prompts</p><div id="prompts"></div></div>
-          <div><p class="list-title">Resources</p><div id="resources"></div></div>
+        <summary>Tool reference <span class="muted" id="reference-count"></span></summary>
+        <div class="body">
+          <div class="toolbar">
+            <input type="search" id="tool-filter" placeholder="Filter tools: uart, hardfault, kconfig…" aria-label="Filter tools">
+            <div class="legend">
+              <span class="badge read">read-only</span><span class="badge write">writes files</span>
+              <span class="badge hardware">hardware</span>
+            </div>
+          </div>
+          <div id="tool-groups"></div>
+          <p class="empty" id="no-match" hidden>No tool matches.</p>
+          <div class="tool-group"><h4>Built-in prompts</h4>
+            <p class="hint">Ready-made workflows; Claude Code lists them as <code>/mcp__neon-mcp__&lt;name&gt;</code>.</p><div id="prompts"></div></div>
+          <div class="tool-group"><h4>Resources</h4><div id="resources"></div></div>
+          <p class="hint" style="margin-top:16px">Building on NEON MCP? The internal architecture is in <a id="arch-link" href="#">ARCHITECTURE.md</a>.</p>
         </div>
       </details>
     </div>
@@ -405,10 +392,7 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 22px; justify-content: s
   const savedTheme = store.get("neon-mcp-theme");
   if (savedTheme) document.documentElement.dataset.theme = savedTheme;
   $("#theme").addEventListener("click", () => {
-    const dark = document.documentElement.dataset.theme
-      ? document.documentElement.dataset.theme === "dark"
-      : matchMedia("(prefers-color-scheme: dark)").matches;
-    const next = dark ? "light" : "dark";
+    const next = document.documentElement.dataset.theme === "light" ? "dark" : "light";
     document.documentElement.dataset.theme = next;
     store.set("neon-mcp-theme", next);
   });
@@ -457,15 +441,9 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 22px; justify-content: s
   $("#gh-link").href = REPO_URL;
   $("#gh-button").href = REPO_URL;
   const cat = D.catalog;
-  const stat = (value, label) => `<div class="stat"><b>${esc(value)}</b><span>${esc(label)}</span></div>`;
-  $("#stats").innerHTML = [
-    stat(cat.modules.length, "modules"),
-    stat(cat.tool_count, "tools"),
-    stat(D.prompts.length, "prompts"),
-    stat(D.resources.length, "resources"),
-  ].join("");
   const sdkLabel = D.sdk.ref || (D.sdk.version ? `v${D.sdk.version}` : "NEON-MDF");
   $("#foot-build").textContent = `NEON MCP v${D.version}` + (D.commit ? ` · commit ${D.commit}` : "") + ` · built ${D.built_at}`;
+  $("#arch-link").href = `${REPO_URL}/blob/HEAD/docs/ARCHITECTURE.md`;
   $("#foot-links").innerHTML = `<a href="${REPO_URL}">Source</a> · ` +
     `<a href="${REPO_URL}/blob/HEAD/docs/ARCHITECTURE.md">Architecture</a> · ` +
     `<a href="https://github.com/${esc(SDK_REPO)}/releases">NEON-MDF releases</a>`;
@@ -713,10 +691,14 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 22px; justify-content: s
   const savedClient = store.get("neon-mcp-client");
   selectClient(CLIENTS.some((c) => c.id === savedClient) ? savedClient : CLIENTS[0].id);
 
-  /* capabilities ----------------------------------------------------------- */
+  /* features --------------------------------------------------------------- */
   const KIND = { read: "read-only", write: "writes files", hardware: "hardware" };
-  $("#capabilities-sub").textContent = `${plural(cat.modules.length, "module")} and ${plural(cat.tool_count, "tool")}, ` +
-    `listed by the server itself. Expand a module for its submodules and tools.`;
+  const ACCESS_TIP = { read: "Only reads", write: "Creates or changes files (disabled by --read-only)",
+                       hardware: "Uses the board: requires --allow-hardware" };
+  const groups = D.capabilities || [];
+  $("#cap-grid").innerHTML = groups.filter((g) => g.card !== false).map((g) =>
+    `<div class="cap"><div class="cap-head"><h3>${esc(g.title)}</h3><span class="badge ${esc(g.access)}" title="${esc(ACCESS_TIP[g.access])}">${esc(KIND[g.access])}</span></div>` +
+    `<p>${esc(g.summary)}</p><ul class="asks">${g.examples.map((e) => `<li>“${esc(e)}”</li>`).join("")}</ul></div>`).join("");
 
   function toolRow(name) {
     const t = D.tools[name] || { description: "", kind: "read", params: [] };
@@ -724,38 +706,27 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 22px; justify-content: s
       `<div class="tool-name"><span>${esc(name)}<span class="params">(${esc(t.params.join(", "))})</span></span>` +
       `<span class="badge ${t.kind}">${KIND[t.kind]}</span></div><p>${esc(t.description)}</p></div>`;
   }
-
-  $("#modules").innerHTML = cat.modules.map((m) => {
-    const done = m.submodules.filter((s) => s.status === "implemented").length;
-    const chips = m.submodules.map((s) =>
-      `<span class="chip${s.status === "planned" ? " planned" : ""}" title="${esc(s.title + ": " + s.description +
-        (s.source ? " (" + s.source + ")" : " (planned)"))}">${esc(s.name)}</span>`).join("");
-    const meta = m.tools.length ? plural(m.tools.length, "tool") : "internal";
-    const body = m.tools.length ? m.tools.map(toolRow).join("") : `<p class="internal">Infrastructure used by the other modules; no tools of its own.</p>`;
-    return `<details class="module" data-module="${esc(m.id)}"><summary><span class="mod-num">${esc(m.number)}</span>` +
-      `<span><span class="mod-title">${esc(m.title)}</span><span class="mod-desc">${esc(m.description)}</span></span>` +
-      `<span class="mod-meta">${esc(meta)} · ${done}/${m.submodules.length} submodules</span></summary>` +
-      `<div class="mod-body"><div class="chips">${chips}</div>${body}</div></details>`;
-  }).join("");
+  $("#reference-count").textContent = `${plural(Object.keys(D.tools).length, "tool")}, ${plural(D.prompts.length, "prompt")}, ` +
+    plural(D.resources.length, "resource");
+  $("#tool-groups").innerHTML = groups.map((g) =>
+    `<div class="tool-group"><h4>${esc(g.title)}</h4>${g.tools.map(toolRow).join("")}</div>`).join("");
 
   $("#tool-filter").addEventListener("input", (ev) => {
     const q = ev.target.value.trim().toLowerCase();
     let any = false;
-    for (const mod of document.querySelectorAll("#modules details.module")) {
+    for (const group of document.querySelectorAll("#tool-groups .tool-group")) {
       let hits = 0;
-      for (const row of mod.querySelectorAll(".tool")) {
+      for (const row of group.querySelectorAll(".tool")) {
         const hit = !q || row.dataset.search.includes(q);
         row.hidden = !hit;
         if (hit) hits++;
       }
-      mod.hidden = !!q && hits === 0;
-      mod.open = !!q && hits > 0;
-      any = any || !mod.hidden;
+      group.hidden = hits === 0;
+      any = any || hits > 0;
     }
     $("#no-match").hidden = any;
   });
 
-  $("#extras-count").textContent = `${plural(D.prompts.length, "prompt")}, ${plural(D.resources.length, "resource")}`;
   $("#prompts").innerHTML = D.prompts.map((p) =>
     `<div class="row"><div class="mono">${esc(p.name)}(${esc(p.arguments.join(", "))})</div><p>${esc(p.description || "")}</p></div>`).join("");
   $("#resources").innerHTML = D.resources.map((r) =>
