@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "neon-mcp"
+version = "0.2.0"
+description = "Model Context Protocol server that lets AI agents use the NEON-MDF firmware SDK"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp>=2.3,<3",
+    "PyYAML>=6,<7",
+    "kconfiglib>=14.1,<15",
+    "pyserial>=3.5,<4",
+    "pyelftools>=0.31",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[project.scripts]
+neon-mcp = "neon_mcp.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+neon_mcp = ["targets/*/target.yaml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 130
+target-version = "py310"
+
+[tool.ruff.lint]
+# Explicit rule set so CI does not change behaviour when ruff's defaults change.
+select = ["E4", "E7", "E9", "F", "B", "I", "UP", "SIM", "PIE", "RUF100", "FURB"]

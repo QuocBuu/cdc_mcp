@@ -1,0 +1,75 @@
+# NEON MCP target profile for GT32U2086.
+#
+# Hardware data (memory, registers, IRQs) is NOT duplicated here: it is read from the
+# SDK device description named by `device`. This file only records what NEON MCP needs
+# to drive the SDK (preset, capabilities, board defaults, boot modes) and the rules an
+# AI agent must respect. Facts come from neon_mdf guide/*.md at release v1.0.0.
+
+name: GT32U2086
+device: GT32U2086            # neon-mdf/mcu-description/devices/GT32U2086.yaml
+architecture: arm-cortex-m   # backend family (arm-cortex-m | riscv)
+core: cortex-m0
+preset: GT32U2086            # CMake configure/build preset
+profiles: [normal, xip]      # -DNEON_MDF_PROFILE=<profile>
+default_profile: normal
+image_suffix: "_image"       # <app>_image.bin = BootROM header + payload
+
+capabilities:
+  build: true
+  menuconfig: true
+  secure_boot: true          # -DNEON_MDF_SECURE_BOOT=ON, ECDSA P-256, domain FU2-IMAGE-V1
+  uart_flash: true           # ROMCODE USART update (boot mode 100), internal Flash only
+  serial_monitor: true
+  qspi_programming: false    # no SDK loader for external QSPI (boot modes 101/111)
+  jtag_debug: false          # neon-mdf/cmake/openocd/GT32U2086_openocd.cfg is a placeholder
+  exception_decode: true     # ARMv6-M stacked-frame / EXC_RETURN decoding
+
+debug:
+  sdk_openocd_config: neon-mdf/cmake/openocd/GT32U2086_openocd.cfg
+  sdk_config_verified: false # debug_connect needs a user-supplied, board-verified config or GDB server
+  hw_breakpoints: 4          # Cortex-M0 BPU: up to 4 comparators (implementation defined)
+  watchpoints: 2             # Cortex-M0 DWT: up to 2 comparators
+  reset_command: "monitor reset halt"
+
+board:
+  cpu_max_hz: 60000000
+  fpga_clock_hz: 10000000    # typical FPGA bitstream; must match the real board clock
+  console: {uart: UART0, baud: 19200, format: 8N1, tx_pin: 50, rx_pin: 51}
+  flash_baud: 19200          # must match ROMCODE on the board
+  flash_tool: gt32u2086_flash.py
+  flash_target: flash_uart_gt32u2086
+
+boot_modes:
+  - {code: "000", name: Internal Flash, image_profile: normal,
+     description: "Check and run the image already in internal Flash (0x00020000)."}
+  - {code: "100", name: USART update, image_profile: normal,
+     description: "PC sends the image over UART; ROMCODE writes internal Flash, then runs it. Used by flash_uart_gt32u2086."}
+  - {code: "101", name: QSPI indirect update, image_profile: normal,
+     description: "ROMCODE copies a normal image from external QSPI offset 0 into internal Flash."}
+  - {code: "111", name: QSPI XIP, image_profile: xip,
+     description: "Run an XIP image (base 0x30000000) directly from external QSPI Flash. No NVR/signature check."}
+
+flash_procedure:
+  - "Build the normal profile (XIP images are rejected by the UART update service)."
+  - "Close any serial monitor holding the port."
+  - "Set the board to boot mode 100 (logical SoC value; see the board schematic for switches)."
+  - "Start programming; when the tool prints '[WAIT] UART is ready', press RESET on the board."
+  - "Wait for '[PASS] Image transfer completed'; ROMCODE then starts the application."
+  - "Switch to boot mode 000 before the next reset to run the installed firmware."
+
+requires_crm_clock: [adc, aes, dma, crc, rtc, trng]
+always_built_drivers: [gpio, flash, crm, syscsr]
+
+rules:
+  - "SRAM accepts only aligned 32-bit accesses. Buffers must own whole aligned words (e.g. uint32_t storage[16] for 64 bytes); use <string.h> functions (word-only SDK runtime)."
+  - "Never pass MMIO addresses to memcpy/string functions; access registers as volatile 32-bit words."
+  - "BootROM hands off with PRIMASK=1: bare-metal apps must call __enable_irq() after configuring NVIC and peripherals."
+  - "Critical sections save/restore PRIMASK; never unconditionally re-enable interrupts."
+  - "timeout_polls arguments are polling-iteration budgets, not milliseconds."
+  - "SystemCoreClock must match the real board clock (UART baud, SPI/QSPI, TIM/PWM, FreeRTOS tick)."
+  - "ADC/AES/DMA/CRC/RTC/TRNG need CRM clock/reset setup before use; GPIO needs neon_gpio_clock_enable()."
+  - "Start configs from neon_<module>_get_default_config() or zero-initialize them."
+  - "printf supports strings and integers only (no float, no snprintf/scanf); it is not reentrant and must not run in ISRs."
+  - "Cortex-M0 has no VTOR: keep the generated startup/linker and the SRAM IRQ relay (first 4 KB of SRAM)."
+  - "FreeRTOS: configCHECK_HANDLER_INSTALLATION=0, configUSE_PORT_OPTIMISED_TASK_SELECTION=0, configENABLE_MPU=0; stack sizes in words, heap in bytes."
+  - "A successful build does not validate timing, IRQs, DMA or wiring; hardware behaviour needs board evidence."

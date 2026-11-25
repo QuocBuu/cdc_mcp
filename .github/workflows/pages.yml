@@ -1,0 +1,60 @@
+name: Pages
+
+# Builds the install page (pages/) from a live NEON MCP server and deploys it to GitHub Pages.
+# One-time setup: Settings → Pages → Build and deployment → Source: "GitHub Actions".
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  NEON_MDF_REF: v1.0.0  # NEON-MDF release used for the page's demo outputs
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Check out NEON-MDF ${{ env.NEON_MDF_REF }}
+        uses: actions/checkout@v7
+        with:
+          repository: ftel-cdc/neon_mdf
+          ref: ${{ env.NEON_MDF_REF }}
+          path: .neon_mdf
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Install NEON MCP
+        run: python -m pip install .
+
+      - name: Build page
+        run: python pages/build.py --sdk .neon_mdf --sdk-ref "$NEON_MDF_REF" --out _site
+
+      - uses: actions/configure-pages@v6
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

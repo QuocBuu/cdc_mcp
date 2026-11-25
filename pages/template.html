@@ -1,0 +1,643 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NEON MCP</title>
+<meta name="description" content="Cài NEON MCP: MCP server cho SDK firmware NEON-MDF (GT32U2086) vào Claude Code, Cursor, VS Code, Claude Desktop và Codex.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<style>
+:root {
+  --bg: #f6f7f9; --surface: #ffffff; --surface-2: #f0f2f5; --border: #e1e5eb; --text: #141922;
+  --muted: #5a6473; --accent: #0b8a7a; --accent-hover: #097466; --accent-ink: #ffffff; --accent-soft: #e2f3f0;
+  --code-bg: #0e141b; --code-text: #e3e9f0; --code-border: #1f2a36;
+  --read-bg: #e6f3ea; --read-fg: #1b6a38; --write-bg: #fcf1dc; --write-fg: #865600;
+  --hw-bg: #fce6e6; --hw-fg: #a11f1f; --plan-bg: #eceff3; --plan-fg: #5a6473;
+  --shadow: 0 1px 2px rgba(16, 24, 40, .05);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0a0e13; --surface: #11171f; --surface-2: #171f29; --border: #243040; --text: #e5eaf1;
+    --muted: #93a0b1; --accent: #3fd0bb; --accent-hover: #6fe0cf; --accent-ink: #032019; --accent-soft: #0f2e2a;
+    --code-bg: #070a0e; --code-text: #e3e9f0; --code-border: #1c2633;
+    --read-bg: #10301d; --read-fg: #80d7a1; --write-bg: #33260c; --write-fg: #f1c56c;
+    --hw-bg: #3a1414; --hw-fg: #ff9d9d; --plan-bg: #1c2430; --plan-fg: #93a0b1;
+    --shadow: none; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0a0e13; --surface: #11171f; --surface-2: #171f29; --border: #243040; --text: #e5eaf1;
+  --muted: #93a0b1; --accent: #3fd0bb; --accent-hover: #6fe0cf; --accent-ink: #032019; --accent-soft: #0f2e2a;
+  --code-bg: #070a0e; --code-text: #e3e9f0; --code-border: #1c2633;
+  --read-bg: #10301d; --read-fg: #80d7a1; --write-bg: #33260c; --write-fg: #f1c56c;
+  --hw-bg: #3a1414; --hw-fg: #ff9d9d; --plan-bg: #1c2430; --plan-fg: #93a0b1;
+  --shadow: none; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 15px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code, pre, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+code { font-size: .9em; background: var(--surface-2); border: 1px solid var(--border); border-radius: 4px; padding: .05em .35em; }
+.wrap { max-width: 1100px; margin: 0 auto; padding: 0 16px; }
+
+/* top bar */
+.topbar { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); }
+.topbar .wrap { display: flex; align-items: center; gap: 16px; height: 56px; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--text); white-space: nowrap; }
+.brand:hover { text-decoration: none; }
+.brand img { width: 26px; height: 26px; }
+.pill { font: 600 12px/1 ui-monospace, monospace; padding: 4px 7px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); }
+.nav { display: flex; gap: 18px; margin-left: auto; align-items: center; }
+.nav a { color: var(--muted); font-size: 14px; white-space: nowrap; }
+.nav a:hover { color: var(--text); text-decoration: none; }
+.icon-btn { border: 1px solid var(--border); background: var(--surface); color: var(--muted); border-radius: 8px;
+  width: 34px; height: 34px; display: grid; place-items: center; cursor: pointer; }
+.icon-btn:hover { color: var(--text); }
+@media (max-width: 720px) { .nav a.opt { display: none; } .nav { gap: 12px; } .topbar .wrap { gap: 10px; } }
+@media (max-width: 380px) { .brand .pill { display: none; } }
+
+/* hero */
+.hero { padding: 56px 0 28px; }
+.hero h1 { font-size: clamp(30px, 5vw, 44px); line-height: 1.15; margin: 0 0 14px; letter-spacing: -.02em; }
+.hero h1 span { color: var(--accent); }
+.lead { font-size: 17px; color: var(--muted); max-width: 760px; margin: 0; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-top: 28px; }
+.stat { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; box-shadow: var(--shadow); }
+.stat b { display: block; font-size: 24px; line-height: 1.2; }
+.stat span { color: var(--muted); font-size: 13px; }
+.note { margin-top: 18px; padding: 12px 14px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--border);
+  color: var(--muted); font-size: 14px; }
+.note strong { color: var(--text); }
+
+/* sections */
+section { padding: 36px 0; border-top: 1px solid var(--border); }
+section > .wrap > h2 { font-size: 26px; margin: 0 0 6px; letter-spacing: -.01em; }
+.sub { color: var(--muted); margin: 0 0 24px; max-width: 780px; }
+.step { display: grid; grid-template-columns: 34px 1fr; gap: 14px; margin-bottom: 30px; }
+.step-n { width: 30px; height: 30px; border-radius: 50%; background: var(--accent); color: var(--accent-ink);
+  display: grid; place-items: center; font-weight: 700; font-size: 14px; }
+.step h3 { margin: 2px 0 10px; font-size: 18px; }
+.step p { margin: 0 0 10px; }
+.step-body { min-width: 0; }
+@media (max-width: 560px) { .step { grid-template-columns: 26px 1fr; gap: 10px; } .step-n { width: 26px; height: 26px; font-size: 13px; } }
+
+/* form */
+.form { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px 18px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; box-shadow: var(--shadow); }
+.field label, .field .label { display: block; font-weight: 600; font-size: 13px; margin-bottom: 6px; }
+.field input[type=text] { width: 100%; padding: 9px 11px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--bg); color: var(--text); font: 14px ui-monospace, monospace; }
+.field input[type=text]:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+.field small { display: block; color: var(--muted); font-size: 12.5px; margin-top: 5px; }
+.seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.seg label { margin: 0; font-weight: 500; font-size: 13px; padding: 7px 11px; cursor: pointer; border-right: 1px solid var(--border); }
+.seg label:last-child { border-right: 0; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg label:has(input:checked) { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.seg label:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: -2px; }
+.field .check { display: flex; font-weight: 400; gap: 8px; align-items: flex-start; font-size: 14px; margin-bottom: 6px; cursor: pointer; }
+.field .check input { margin-top: 4px; accent-color: var(--accent); }
+
+/* tabs */
+.tabs { display: flex; gap: 4px; flex-wrap: wrap; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+.tab { border: 0; background: none; color: var(--muted); font: 600 14px system-ui, sans-serif; padding: 10px 14px;
+  border-bottom: 2px solid transparent; margin-bottom: -1px; cursor: pointer; }
+.tab:hover { color: var(--text); }
+.tab[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+.panel { display: none; }
+.panel.active { display: block; }
+.btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin: 4px 0 16px; }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 8px; font-weight: 600; font-size: 14px;
+  background: var(--accent); color: var(--accent-ink); border: 1px solid var(--accent); cursor: pointer; }
+.btn:hover { background: var(--accent-hover); text-decoration: none; }
+.btn.ghost { background: var(--surface); color: var(--text); border-color: var(--border); }
+.btn.ghost:hover { border-color: var(--accent); }
+
+/* code blocks */
+.snip { margin: 0 0 14px; }
+.snip-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; background: var(--code-bg);
+  border: 1px solid var(--code-border); border-bottom: 0; border-radius: 10px 10px 0 0; padding: 7px 8px 7px 14px;
+  color: #8b98a9; font-size: 12.5px; }
+.snip pre { margin: 0; background: var(--code-bg); color: var(--code-text); border: 1px solid var(--code-border);
+  border-top-color: #1a2430; border-radius: 0 0 10px 10px; padding: 12px 14px; overflow-x: auto; font-size: 13px; line-height: 1.55;
+  scrollbar-color: #2c3846 var(--code-bg); scrollbar-width: thin; }
+.copy { border: 1px solid #2a3644; background: #151d27; color: #c9d4e0; border-radius: 6px; font: 600 12px system-ui, sans-serif;
+  padding: 4px 9px; cursor: pointer; }
+.copy:hover { border-color: #3fd0bb; color: #fff; }
+.copy.done { color: #3fd0bb; border-color: #3fd0bb; }
+.hint { color: var(--muted); font-size: 13.5px; margin: -4px 0 14px; }
+
+/* catalog */
+.toolbar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+.toolbar input { flex: 1 1 260px; padding: 9px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface);
+  color: var(--text); font-size: 14px; }
+.legend { display: flex; gap: 8px; flex-wrap: wrap; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; align-items: start; }
+@media (max-width: 420px) { .grid { grid-template-columns: 1fr; } }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; box-shadow: var(--shadow); min-width: 0; }
+.card-head { display: flex; gap: 10px; align-items: baseline; }
+.card-num { font: 700 13px ui-monospace, monospace; color: var(--accent); }
+.card h3 { margin: 0; font-size: 16px; }
+.card .desc { color: var(--muted); font-size: 13.5px; margin: 6px 0 10px; }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
+.chip { font: 12px ui-monospace, monospace; padding: 2px 7px; border-radius: 6px; background: var(--surface-2); border: 1px solid var(--border); }
+.chip.planned { background: var(--plan-bg); color: var(--plan-fg); border-style: dashed; }
+details.tools summary { cursor: pointer; font-weight: 600; font-size: 13.5px; color: var(--accent); padding: 4px 0; list-style: none; }
+details.tools summary::-webkit-details-marker { display: none; }
+details.tools summary::before { content: "▸ "; }
+details.tools[open] summary::before { content: "▾ "; }
+.tool { padding: 8px 0; border-top: 1px solid var(--border); }
+.tool:first-of-type { border-top: 0; }
+.tool-name { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font: 600 13px ui-monospace, monospace; }
+.tool p { margin: 3px 0 0; font-size: 13px; color: var(--muted); }
+.badge { font: 600 11px system-ui, sans-serif; padding: 2px 7px; border-radius: 999px; white-space: nowrap; }
+.badge.read { background: var(--read-bg); color: var(--read-fg); }
+.badge.write { background: var(--write-bg); color: var(--write-fg); }
+.badge.hardware { background: var(--hw-bg); color: var(--hw-fg); }
+.badge.planned { background: var(--plan-bg); color: var(--plan-fg); }
+.internal { font-size: 13px; color: var(--muted); font-style: italic; }
+.empty { color: var(--muted); padding: 12px 0; display: none; }
+
+/* demo */
+.demo { display: grid; grid-template-columns: 300px 1fr; gap: 16px; align-items: start; }
+@media (max-width: 860px) { .demo { grid-template-columns: 1fr; } }
+.demo-list { display: flex; flex-direction: column; gap: 6px; }
+@media (max-width: 860px) { .demo-list { flex-direction: row; overflow-x: auto; padding-bottom: 4px; } .demo-item { min-width: 220px; } }
+.demo-item { text-align: left; border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 10px;
+  padding: 10px 12px; cursor: pointer; font: 13.5px/1.4 system-ui, sans-serif; }
+.demo-item b { display: block; font: 600 12.5px ui-monospace, monospace; color: var(--accent); margin-bottom: 2px; }
+.demo-item:hover { border-color: var(--accent); }
+.demo-item[aria-selected="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.demo-view { min-width: 0; }
+.demo-view pre.result { max-height: 560px; overflow: auto; }
+.j-key { color: #7cc7ff; } .j-str { color: #a5e3a0; } .j-num { color: #f7b267; } .j-bool { color: #e39cff; } .j-null { color: #8b98a9; }
+
+/* small tables */
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.list { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 6px 16px; box-shadow: var(--shadow); }
+.list h3 { font-size: 15px; margin: 10px 0 4px; }
+.row { padding: 9px 0; border-top: 1px solid var(--border); }
+.row:first-of-type { border-top: 0; }
+.row .mono { font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
+.row p { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+
+footer { border-top: 1px solid var(--border); padding: 26px 0 40px; color: var(--muted); font-size: 13px; }
+footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 22px; justify-content: space-between; }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="#"><img src="favicon.svg" alt="">NEON MCP <span class="pill">v__VERSION__</span></a>
+    <nav class="nav">
+      <a href="#install">Cài đặt</a>
+      <a class="opt" href="#catalog">Chức năng</a>
+      <a class="opt" href="#demo">Demo</a>
+      <a id="gh-link" href="#">GitHub</a>
+      <button class="icon-btn" id="theme" type="button" title="Đổi giao diện sáng/tối" aria-label="Đổi giao diện sáng/tối">◐</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="hero">
+    <div class="wrap">
+      <h1>Đưa SDK <span>NEON-MDF</span> vào AI agent của bạn</h1>
+      <p class="lead">NEON MCP là MCP server chạy trên máy bạn. Agent (Claude Code, Cursor, VS Code, Codex…) dùng nó để tra tài liệu,
+        register và C API của GT32U2086, tạo project, build bằng CMake, kiểm tra image, nạp firmware qua UART, debug qua GDB
+        và phân tích HardFault. Mọi dữ liệu và công cụ đều lấy từ checkout NEON-MDF của bạn.</p>
+      <div class="stats" id="stats"></div>
+      <div class="note"><strong>Chạy local, không phải server online.</strong> Server cần checkout NEON-MDF, toolchain ARM
+        và quyền truy cập cổng serial/debugger trên máy bạn, nên mỗi client tự khởi động một tiến trình <code>neon-mcp</code> qua stdio.
+        Trang này chỉ hướng dẫn cài.</div>
+    </div>
+  </div>
+
+  <section id="install">
+    <div class="wrap">
+      <h2>Cài đặt</h2>
+      <p class="sub">Điền thông tin ở bước 2, các lệnh và nút cài ở bước 3 sẽ tự cập nhật theo.</p>
+
+      <div class="step">
+        <div class="step-n">1</div>
+        <div class="step-body">
+          <h3>Chuẩn bị</h3>
+          <p>Cài <a href="https://docs.astral.sh/uv/" target="_blank" rel="noopener">uv</a> (để chạy <code>uvx</code>) và Git:</p>
+          <div id="prereq"></div>
+          <p>Để build firmware, máy cần thêm <code>arm-none-eabi-gcc</code> (kèm newlib), CMake ≥ 3.25 và Ninja.
+            Sau khi cài xong, nhờ agent gọi <code>dev_check_environment</code> để biết còn thiếu gì.</p>
+          <div id="toolchain"></div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-n">2</div>
+        <div class="step-body">
+          <h3>Cấu hình</h3>
+          <form class="form" id="cfg" autocomplete="off" onsubmit="return false">
+            <div class="field">
+              <label for="f-sdk">Đường dẫn NEON-MDF (<code>--sdk</code>)</label>
+              <input type="text" id="f-sdk" name="sdk" placeholder="~/neon_mdf" spellcheck="false">
+              <small>Thư mục đã clone ở bước 1. Dùng được <code>~</code>.</small>
+            </div>
+            <div class="field">
+              <label for="f-ws">Workspace (<code>--workspace</code>, không bắt buộc)</label>
+              <input type="text" id="f-ws" name="workspace" placeholder="ví dụ: ~/projects" spellcheck="false">
+              <small>Thư mục agent được đọc/ghi. Bỏ trống thì dùng thư mục client khởi động server.</small>
+            </div>
+            <div class="field">
+              <span class="label">Cách chạy server</span>
+              <div class="seg" role="radiogroup" aria-label="Cách chạy server">
+                <label><input type="radio" name="source" value="https" checked>uvx · HTTPS</label>
+                <label><input type="radio" name="source" value="ssh">uvx · SSH</label>
+                <label><input type="radio" name="source" value="installed">Đã cài sẵn</label>
+              </div>
+              <small id="source-hint"></small>
+            </div>
+            <div class="field">
+              <span class="label">Quyền</span>
+              <label class="check"><input type="checkbox" name="hardware"><span><code>--allow-hardware</code>: cho phép mở cổng serial, nạp board, debug</span></label>
+              <label class="check"><input type="checkbox" name="readonly"><span><code>--read-only</code>: cấm tạo project, sửa sdkconfig, build</span></label>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-n">3</div>
+        <div class="step-body">
+          <h3>Thêm vào client</h3>
+          <div class="tabs" role="tablist" id="client-tabs"></div>
+          <div id="client-panels"></div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-n">4</div>
+        <div class="step-body">
+          <h3>Kiểm tra</h3>
+          <p>Khởi động lại client, rồi hỏi agent: <em>“Gọi <code>session_get_context</code> và <code>neon_list_modules</code>, tóm tắt
+            NEON MCP làm được gì.”</em> Agent sẽ trả về phiên bản SDK, target và danh sách module.</p>
+          <p>Muốn tự gọi thử từng tool mà không cần agent, dùng MCP Inspector:</p>
+          <div id="inspector"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="catalog">
+    <div class="wrap">
+      <h2>Chức năng</h2>
+      <p class="sub" id="catalog-sub"></p>
+      <div class="toolbar">
+        <input type="search" id="tool-filter" placeholder="Lọc tool, ví dụ: uart, hardfault, kconfig…" aria-label="Lọc tool">
+        <div class="legend">
+          <span class="badge read">chỉ đọc</span><span class="badge write">ghi file</span>
+          <span class="badge hardware">phần cứng</span><span class="badge planned">planned</span>
+        </div>
+      </div>
+      <div class="grid" id="modules"></div>
+      <p class="empty" id="no-match">Không có tool nào khớp.</p>
+    </div>
+  </section>
+
+  <section id="demo">
+    <div class="wrap">
+      <h2>Demo</h2>
+      <p class="sub" id="demo-sub"></p>
+      <div class="demo">
+        <div class="demo-list" role="tablist" id="demo-list"></div>
+        <div class="demo-view" id="demo-view"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="extras">
+    <div class="wrap">
+      <h2>Prompt và resource</h2>
+      <p class="sub">Prompt là quy trình mẫu agent có thể gọi; resource là dữ liệu đọc trực tiếp theo URI <code>neon://</code>.</p>
+      <div class="two">
+        <div class="list"><h3>Prompt</h3><div id="prompts"></div></div>
+        <div class="list"><h3>Resource</h3><div id="resources"></div></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span id="foot-build"></span>
+    <span id="foot-links"></span>
+  </div>
+</footer>
+
+<script id="neon-data" type="application/json">__NEON_DATA__</script>
+<script>
+(() => {
+  "use strict";
+  const D = JSON.parse(document.getElementById("neon-data").textContent);
+  const NAME = "neon-mcp";
+  const REPO_URL = `https://github.com/${D.repo}`;
+  const $ = (sel, root = document) => root.querySelector(sel);
+  const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch { /* storage unavailable */ } },
+  };
+
+  /* theme ------------------------------------------------------------------ */
+  const savedTheme = store.get("neon-mcp-theme");
+  if (savedTheme) document.documentElement.dataset.theme = savedTheme;
+  $("#theme").addEventListener("click", () => {
+    const dark = document.documentElement.dataset.theme
+      ? document.documentElement.dataset.theme === "dark"
+      : matchMedia("(prefers-color-scheme: dark)").matches;
+    const next = dark ? "light" : "dark";
+    document.documentElement.dataset.theme = next;
+    store.set("neon-mcp-theme", next);
+  });
+
+  /* helpers ---------------------------------------------------------------- */
+  const shq = (s) => (/^[\w@%+=:,./~-]+$/.test(s) ? s : `'${s.replace(/'/g, `'\\''`)}'`);
+  const b64 = (s) => btoa(String.fromCharCode(...new TextEncoder().encode(s)));
+  const tomlStr = (s) => JSON.stringify(s);
+
+  function highlight(json) {
+    return esc(json).replace(
+      /("(?:\\u[a-fA-F0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(?:true|false)\b|\bnull\b|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)/g,
+      (m) => {
+        let cls = "num";
+        if (m.startsWith("&quot;") || m.startsWith('"')) cls = /:\s*$/.test(m) ? "key" : "str";
+        else if (m === "true" || m === "false") cls = "bool";
+        else if (m === "null") cls = "null";
+        return `<span class="j-${cls}">${m}</span>`;
+      });
+  }
+
+  function snippet(label, text, opts = {}) {
+    const body = opts.json ? highlight(text) : esc(text);
+    return `<div class="snip"><div class="snip-head"><span>${esc(label)}</span>` +
+      `<button class="copy" type="button" data-copy="${esc(text)}">Copy</button></div><pre>${body}</pre></div>`;
+  }
+
+  document.addEventListener("click", async (ev) => {
+    const btn = ev.target.closest(".copy");
+    if (!btn) return;
+    const text = btn.dataset.copy;
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      const ta = Object.assign(document.createElement("textarea"), { value: text });
+      document.body.append(ta); ta.select(); document.execCommand("copy"); ta.remove();
+    }
+    btn.textContent = "Đã copy"; btn.classList.add("done");
+    setTimeout(() => { btn.textContent = "Copy"; btn.classList.remove("done"); }, 1400);
+  });
+
+  /* header, stats, footer --------------------------------------------------- */
+  $("#gh-link").href = REPO_URL;
+  const cat = D.catalog;
+  const sdkLabel = D.sdk.ref || (D.sdk.version ? `v${D.sdk.version}` : "NEON-MDF");
+  const stat = (value, label) => `<div class="stat"><b>${esc(value)}</b><span>${esc(label)}</span></div>`;
+  $("#stats").innerHTML = [
+    stat(cat.modules.length, "module"),
+    stat(cat.submodules_implemented, "submodule đã có"),
+    stat(cat.tool_count, "tool"),
+    stat(D.prompts.length, "prompt"),
+    stat(D.resources.length, "resource"),
+    stat(sdkLabel, "NEON-MDF được kiểm thử"),
+  ].join("");
+  $("#foot-build").textContent = `NEON MCP v${D.version}` + (D.commit ? ` · commit ${D.commit}` : "") +
+    ` · build ${D.built_at} · NEON-MDF ${sdkLabel}` + (D.sdk.commit ? ` (${D.sdk.commit})` : "");
+  $("#foot-links").innerHTML = `<a href="${REPO_URL}">Mã nguồn</a> · ` +
+    `<a href="${REPO_URL}/blob/HEAD/docs/ARCHITECTURE.md">Kiến trúc</a> · ` +
+    `<a href="https://github.com/ftel-cdc/neon_mdf">NEON-MDF</a>`;
+
+  /* install ---------------------------------------------------------------- */
+  const form = $("#cfg");
+  const FIELDS = ["sdk", "workspace", "source", "hardware", "readonly"];
+  try {
+    const saved = JSON.parse(store.get("neon-mcp-install") || "{}");
+    for (const key of FIELDS) {
+      if (!(key in saved)) continue;
+      const el = form.elements[key];
+      if (el instanceof RadioNodeList) el.value = saved[key];
+      else if (el.type === "checkbox") el.checked = !!saved[key];
+      else el.value = saved[key];
+    }
+  } catch { /* ignore bad saved state */ }
+
+  function state() {
+    const f = form.elements;
+    return {
+      sdk: f.sdk.value.trim() || "~/neon_mdf",
+      workspace: f.workspace.value.trim(),
+      source: f.source.value,
+      hardware: f.hardware.checked,
+      readonly: f.readonly.checked,
+    };
+  }
+
+  const ref = D.install_ref ? `@${D.install_ref}` : "";
+  const SOURCES = {
+    https: `git+${REPO_URL}${ref}`,
+    ssh: `git+ssh://git@github.com/${D.repo}${ref}`,
+  };
+
+  function server(s) {
+    const args = ["--sdk", s.sdk];
+    if (s.workspace) args.push("--workspace", s.workspace);
+    if (s.hardware) args.push("--allow-hardware");
+    if (s.readonly) args.push("--read-only");
+    if (s.source === "installed") return { command: NAME, args };
+    return { command: "uvx", args: ["--from", SOURCES[s.source], NAME, ...args] };
+  }
+
+  const cli = (srv) => [srv.command, ...srv.args].map(shq).join(" ");
+  const json = (obj) => JSON.stringify(obj, null, 2);
+
+  const CLIENTS = [
+    { id: "claude-code", name: "Claude Code", render(srv) {
+        return snippet("Terminal: thêm cho mọi project (scope user)", `claude mcp add --scope user ${NAME} -- ${cli(srv)}`) +
+          `<p class="hint">Chỉ dùng trong project hiện tại: bỏ <code>--scope user</code>. Muốn chia sẻ cấu hình cho cả nhóm qua git, ` +
+          `dùng <code>--scope project</code>, hoặc tạo file <code>.mcp.json</code> ở gốc project:</p>` +
+          snippet(".mcp.json", json({ mcpServers: { [NAME]: srv } }), { json: true }) +
+          snippet("Kiểm tra", "claude mcp list");
+    } },
+    { id: "cursor", name: "Cursor", render(srv) {
+        const link = `cursor://anysphere.cursor-deeplink/mcp/install?name=${NAME}&config=${encodeURIComponent(b64(JSON.stringify(srv)))}`;
+        return `<div class="btn-row"><a class="btn" href="${esc(link)}">Add to Cursor</a></div>` +
+          `<p class="hint">Hoặc thêm thủ công vào <code>~/.cursor/mcp.json</code> (toàn máy) hoặc <code>.cursor/mcp.json</code> (một project):</p>` +
+          snippet("mcp.json", json({ mcpServers: { [NAME]: srv } }), { json: true });
+    } },
+    { id: "vscode", name: "VS Code", render(srv) {
+        const cfg = JSON.stringify({ name: NAME, ...srv });
+        return `<div class="btn-row"><a class="btn" href="${esc("vscode:mcp/install?" + encodeURIComponent(cfg))}">Install in VS Code</a>` +
+          `<a class="btn ghost" href="${esc("vscode-insiders:mcp/install?" + encodeURIComponent(cfg))}">VS Code Insiders</a></div>` +
+          snippet("Terminal", `code --add-mcp ${shq(cfg)}`) +
+          `<p class="hint">Hoặc tạo <code>.vscode/mcp.json</code> trong project (dùng với Copilot Chat ở chế độ Agent):</p>` +
+          snippet(".vscode/mcp.json", json({ servers: { [NAME]: { type: "stdio", ...srv } } }), { json: true });
+    } },
+    { id: "claude-desktop", name: "Claude Desktop", render(srv) {
+        return `<p class="hint">Mở Settings → Developer → Edit Config, hoặc sửa trực tiếp <code>claude_desktop_config.json</code> ` +
+          `(macOS: <code>~/Library/Application Support/Claude/</code>, Windows: <code>%APPDATA%\\Claude\\</code>). ` +
+          `Claude Desktop không đọc PATH của shell, nên nếu báo không tìm thấy <code>${esc(srv.command)}</code>, ` +
+          `thay bằng đường dẫn tuyệt đối (<code>which ${esc(srv.command)}</code>). Nên điền workspace ở bước 2.</p>` +
+          snippet("claude_desktop_config.json", json({ mcpServers: { [NAME]: srv } }), { json: true });
+    } },
+    { id: "codex", name: "Codex", render(srv) {
+        const toml = `[mcp_servers.${NAME}]\ncommand = ${tomlStr(srv.command)}\nargs = [${srv.args.map(tomlStr).join(", ")}]`;
+        return snippet("Terminal", `codex mcp add ${NAME} -- ${cli(srv)}`) +
+          `<p class="hint">Hoặc thêm vào <code>~/.codex/config.toml</code>:</p>` + snippet("config.toml", toml);
+    } },
+  ];
+
+  const tabs = $("#client-tabs");
+  const panels = $("#client-panels");
+  tabs.innerHTML = CLIENTS.map((c) =>
+    `<button class="tab" role="tab" type="button" id="tab-${c.id}" aria-controls="panel-${c.id}" data-client="${c.id}">${esc(c.name)}</button>`).join("");
+  panels.innerHTML = CLIENTS.map((c) =>
+    `<div class="panel" role="tabpanel" id="panel-${c.id}" aria-labelledby="tab-${c.id}"></div>`).join("");
+
+  function selectClient(id) {
+    for (const c of CLIENTS) {
+      const on = c.id === id;
+      $(`#tab-${c.id}`).setAttribute("aria-selected", String(on));
+      $(`#tab-${c.id}`).tabIndex = on ? 0 : -1;
+      $(`#panel-${c.id}`).classList.toggle("active", on);
+    }
+    store.set("neon-mcp-client", id);
+  }
+  tabs.addEventListener("click", (ev) => {
+    const btn = ev.target.closest(".tab");
+    if (btn) selectClient(btn.dataset.client);
+  });
+  tabs.addEventListener("keydown", (ev) => {
+    if (ev.key !== "ArrowRight" && ev.key !== "ArrowLeft") return;
+    const ids = CLIENTS.map((c) => c.id);
+    const cur = ids.indexOf(document.activeElement?.dataset?.client);
+    if (cur < 0) return;
+    const next = ids[(cur + (ev.key === "ArrowRight" ? 1 : ids.length - 1)) % ids.length];
+    selectClient(next);
+    $(`#tab-${next}`).focus();
+  });
+
+  const SOURCE_HINTS = {
+    https: "Repo public: uvx tải và chạy bản mới nhất từ GitHub, không cần cài trước.",
+    ssh: "Repo private: uvx clone qua SSH, cần SSH key có quyền đọc repo.",
+    installed: "Đã cài lệnh neon-mcp vào PATH bằng pipx (xem bước 1).",
+  };
+
+  function render() {
+    const s = state();
+    const srv = server(s);
+    const values = {};
+    for (const key of FIELDS) {
+      const el = form.elements[key];
+      values[key] = el instanceof RadioNodeList ? el.value : el.type === "checkbox" ? el.checked : el.value;
+    }
+    store.set("neon-mcp-install", JSON.stringify(values));
+    $("#source-hint").textContent = SOURCE_HINTS[s.source];
+
+    const clone = `git clone${D.sdk.ref ? " --branch " + shq(D.sdk.ref) : ""} https://github.com/ftel-cdc/neon_mdf.git ${shq(s.sdk)}`;
+    let pre = snippet("macOS / Linux", "curl -LsSf https://astral.sh/uv/install.sh | sh") +
+      snippet("Windows (PowerShell)", 'powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"') +
+      snippet("Lấy NEON-MDF", clone);
+    if (s.source === "installed") {
+      pre += snippet("Cài neon-mcp vào PATH (cần pipx)", `pipx install ${shq(SOURCES.https)}`);
+    }
+    $("#prereq").innerHTML = pre;
+    $("#toolchain").innerHTML = snippet("Ubuntu / Debian", "sudo apt install gcc-arm-none-eabi libnewlib-arm-none-eabi ninja-build cmake");
+    $("#inspector").innerHTML = snippet("Cần Node.js", `npx @modelcontextprotocol/inspector ${cli(srv)}`);
+    for (const c of CLIENTS) $(`#panel-${c.id}`).innerHTML = c.render(srv);
+  }
+  form.addEventListener("input", render);
+  form.addEventListener("change", render);
+  render();
+  const savedClient = store.get("neon-mcp-client");
+  selectClient(CLIENTS.some((c) => c.id === savedClient) ? savedClient : CLIENTS[0].id);
+
+  /* catalog ---------------------------------------------------------------- */
+  const KIND = { read: "chỉ đọc", write: "ghi file", hardware: "phần cứng" };
+  const subs = cat.modules.flatMap((m) => m.submodules);
+  $("#catalog-sub").innerHTML = `${cat.modules.length} module, ${subs.length} submodule ` +
+    `(${cat.submodules_implemented} đã có, ${cat.submodules_planned} planned), ${cat.tool_count} tool. ` +
+    `Danh sách được sinh tự động từ server lúc build, nên luôn khớp với mã nguồn.`;
+
+  function toolRow(name) {
+    const t = D.tools[name] || { description: "", kind: "read", params: [] };
+    const params = t.params.length ? `(${t.params.join(", ")})` : "()";
+    return `<div class="tool" data-search="${esc((name + " " + t.description).toLowerCase())}">` +
+      `<div class="tool-name"><span>${esc(name)}<span style="color:var(--muted);font-weight:400">${esc(params)}</span></span>` +
+      `<span class="badge ${t.kind}">${KIND[t.kind]}</span></div><p>${esc(t.description)}</p></div>`;
+  }
+
+  $("#modules").innerHTML = cat.modules.map((m) => {
+    const chips = m.submodules.map((s) =>
+      `<span class="chip${s.status === "planned" ? " planned" : ""}" title="${esc(s.title + ": " + s.description +
+        (s.source ? " (" + s.source + ")" : " (planned)"))}">${esc(s.name)}</span>`).join("");
+    const tools = m.tools.length
+      ? `<details class="tools"><summary>${m.tools.length} tool</summary>${m.tools.map(toolRow).join("")}</details>`
+      : `<p class="internal">Hạ tầng nội bộ, không có tool riêng.</p>`;
+    return `<article class="card" data-module="${esc(m.id)}"><div class="card-head"><span class="card-num">${esc(m.number)}</span>` +
+      `<h3>${esc(m.title)}</h3></div><p class="desc">${esc(m.description)}</p><div class="chips">${chips}</div>${tools}</article>`;
+  }).join("");
+
+  $("#tool-filter").addEventListener("input", (ev) => {
+    const q = ev.target.value.trim().toLowerCase();
+    let any = false;
+    for (const card of document.querySelectorAll("#modules .card")) {
+      const rows = card.querySelectorAll(".tool");
+      let hits = 0;
+      for (const row of rows) {
+        const hit = !q || row.dataset.search.includes(q);
+        row.style.display = hit ? "" : "none";
+        if (hit) hits++;
+      }
+      const details = card.querySelector("details");
+      const show = !q || hits > 0;
+      card.style.display = show ? "" : "none";
+      if (details) details.open = !!q && hits > 0;
+      any = any || (show && (!q || hits > 0));
+    }
+    $("#no-match").style.display = any ? "none" : "block";
+  });
+
+  /* demo ------------------------------------------------------------------- */
+  $("#demo-sub").innerHTML = `Kết quả thật của các tool chỉ đọc, chạy lúc build trên NEON-MDF ${esc(sdkLabel)}` +
+    `${D.sdk.commit ? " (commit " + esc(D.sdk.commit) + ")" : ""}. Danh sách dài được rút gọn.`;
+  const demoList = $("#demo-list");
+  demoList.innerHTML = D.demos.map((d, i) =>
+    `<button class="demo-item" role="tab" type="button" data-i="${i}"><b>${esc(d.tool)}</b>${esc(d.title)}</button>`).join("");
+
+  function showDemo(i) {
+    const d = D.demos[i];
+    demoList.querySelectorAll(".demo-item").forEach((b, j) => b.setAttribute("aria-selected", String(i === j)));
+    const call = `${d.tool}(${json(d.arguments) === "{}" ? "" : json(d.arguments)})`;
+    $("#demo-view").innerHTML = snippet("Agent gọi", call) +
+      `<div class="snip"><div class="snip-head"><span>Kết quả</span><button class="copy" type="button" data-copy="${esc(json(d.result))}">Copy</button></div>` +
+      `<pre class="result">${highlight(json(d.result))}</pre></div>`;
+  }
+  demoList.addEventListener("click", (ev) => {
+    const btn = ev.target.closest(".demo-item");
+    if (btn) showDemo(Number(btn.dataset.i));
+  });
+  if (D.demos.length) showDemo(0);
+
+  /* prompts & resources ---------------------------------------------------- */
+  $("#prompts").innerHTML = D.prompts.map((p) =>
+    `<div class="row"><div class="mono">${esc(p.name)}(${esc(p.arguments.join(", "))})</div><p>${esc(p.description || "")}</p></div>`).join("");
+  $("#resources").innerHTML = D.resources.map((r) =>
+    `<div class="row"><div class="mono">${esc(r.uri)}</div><p>${esc(r.description || "")}</p></div>`).join("");
+})();
+</script>
+</body>
+</html>
