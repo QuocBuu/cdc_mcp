@@ -23,8 +23,8 @@ so the agent always works with the SDK you build with.
 
 ## Quick start
 
-The install page has per-client commands, one-click buttons for Cursor and VS Code, and real tool
-output: **https://quocbuu.github.io/cdc_mcp/**
+The install page lists the supported NEON-MDF releases and chips, the command for each client
+(with one-click buttons for Cursor and VS Code) and example requests: **https://quocbuu.github.io/cdc_mcp/**
 
 With [uv](https://docs.astral.sh/uv/) and Claude Code:
 
@@ -167,7 +167,7 @@ the debug session test also needs `gdb-multiarch` or `arm-none-eabi-gdb`.
 | Workflow | Trigger | What it does |
 |---|---|---|
 | `CI` | push to `main`, pull requests | Lint and tests against NEON-MDF v1.0.0, on Python 3.10 and on Python 3.12 with the ARM toolchain and `gdb-multiarch` |
-| `Pages` | push to `main`, manual | Builds the install page from a live server and deploys it to GitHub Pages |
+| `Pages` | push to `main`, manual | Builds the install page and deploys it to GitHub Pages |
 | `Knowledge packs` | daily, manual | Generates packs for new NEON-MDF releases, commits them, then reruns CI and Pages (`force` regenerates every pack) |
 
 GitHub Pages must use **GitHub Actions** as its source (Settings → Pages).

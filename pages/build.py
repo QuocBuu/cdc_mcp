@@ -1,7 +1,7 @@
 """Build the NEON MCP install page as a static site for GitHub Pages.
 
 The page is the one the Streamable HTTP transport serves at `/` (src/neon_mcp/web/index.html),
-filled with data from a live in-process server running against the NEON-MDF checkout in --sdk.
+filled with data from an in-process server running against the NEON-MDF checkout in --sdk.
 
     python pages/build.py --sdk ../neon_mdf --out _site
 """
@@ -17,7 +17,6 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-from neon_mcp.adapters import knowledge_pack as packs
 from neon_mcp.core import web
 from neon_mcp.core.app import NeonApp
 from neon_mcp.core.server import create_server
@@ -54,7 +53,7 @@ def main() -> None:
     workspace = Path(tempfile.mkdtemp(prefix="neon-mcp-pages-"))
     app = NeonApp(Settings(sdk_path=sdk, workspace_roots=[workspace]))
     try:
-        data = asyncio.run(web.collect(create_server(app), app, strict=True))
+        data = asyncio.run(web.collect(create_server(app), app))
     finally:
         app.close()
         shutil.rmtree(workspace, ignore_errors=True)
@@ -63,21 +62,14 @@ def main() -> None:
                  "commit": (os.environ.get("GITHUB_SHA") or git("rev-parse", "HEAD") or "")[:7] or None})
     if args.sdk_ref:
         data["sdk"]["ref"] = args.sdk_ref
-    # Build-machine paths mean nothing to readers.
-    html = web.render(data, hide_paths={str(sdk): "<NEON_MDF>", str(workspace.resolve()): "<WORKSPACE>"})
+    html = web.render(data)
 
     args.out.mkdir(parents=True, exist_ok=True)
     (args.out / "index.html").write_text(html, encoding="utf-8")
     shutil.copy(web.WEB_DIR / "favicon.svg", args.out / "favicon.svg")
     (args.out / ".nojekyll").write_text("")
-    # Knowledge packs at packs/<name>/..., plus packs/index.json for tools and scripts.
-    shutil.rmtree(args.out / "packs", ignore_errors=True)
-    bundled = packs.find_packs([packs.BUNDLED_DIR])
-    for pack in bundled:
-        shutil.copytree(pack.path, args.out / "packs" / pack.name)
-    (args.out / "packs" / "index.json").write_text(packs.dumps([p.summary() for p in bundled]), encoding="utf-8")
-    print(f"wrote {args.out / 'index.html'} ({len(html) // 1024} KiB, {len(data['tools'])} tools, "
-          f"{len(data['demos'])} demos, {len(bundled)} packs)")
+    print(f"wrote {args.out / 'index.html'} ({len(html) // 1024} KiB, "
+          f"releases: {', '.join(r['version'] for r in data['releases']) or 'none'})")
 
 
 if __name__ == "__main__":

@@ -18,7 +18,7 @@ MODULE = Module(
                   "Per-connection defaults (target, app, serial port, baud).", source="core/session.py"),
         Submodule("transport", "Transport", "stdio (default) and Streamable HTTP.", source="core/transport.py"),
         Submodule("install_page", "Install Page",
-                  "Install guide with live catalog and demos: served at / over HTTP, published on GitHub Pages.",
+                  "Install guide: supported releases and chips, client setup, example requests; at / and on GitHub Pages.",
                   source="core/web.py"),
     ],
 )

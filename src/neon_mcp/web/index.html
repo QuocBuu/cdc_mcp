@@ -155,56 +155,13 @@ details.more.flat > .body { padding: 4px 0 0; }
 .cap > p { margin: 6px 0 10px; color: var(--muted); font-size: 14px; }
 ul.asks { list-style: none; margin: 0; padding: 0; }
 ul.asks li { font-size: 13.5px; padding: 3px 0 3px 10px; border-left: 2px solid var(--accent-soft); margin: 4px 0; }
-.toolbar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin: 4px 0 6px; }
-.toolbar input { flex: 1 1 260px; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg);
-  color: var(--text); font-size: 14px; }
-.legend { display: flex; gap: 6px; flex-wrap: wrap; }
-.tool-group h4 { margin: 18px 0 2px; font-size: 14px; }
 .chips { display: flex; flex-wrap: wrap; gap: 5px; margin: 2px 0 8px; }
 .chip { font: 12px ui-monospace, monospace; padding: 2px 7px; border-radius: 6px; background: var(--surface-2); border: 1px solid var(--border); }
-.chip.planned { background: var(--plan-bg); color: var(--plan-fg); border-style: dashed; }
 .chip.device { font-weight: 600; background: var(--accent-soft); border-color: transparent; color: var(--accent); }
-.tool { padding: 8px 0; border-top: 1px solid var(--border); }
-.tool-name { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font: 600 13px ui-monospace, monospace; }
-.tool-name .params { color: var(--muted); font-weight: 400; }
-.tool p { margin: 2px 0 0; font-size: 13px; color: var(--muted); }
 .badge { font: 600 11px system-ui, sans-serif; padding: 2px 7px; border-radius: 999px; white-space: nowrap; }
 .badge.read { background: var(--read-bg); color: var(--read-fg); }
 .badge.write { background: var(--write-bg); color: var(--write-fg); }
 .badge.hardware { background: var(--hw-bg); color: var(--hw-fg); }
-.badge.planned { background: var(--plan-bg); color: var(--plan-fg); }
-.internal { font-size: 13px; color: var(--muted); margin: 0; }
-.empty { color: var(--muted); padding: 12px 16px; margin: 0; }
-.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0 28px; }
-.row { padding: 8px 0; border-top: 1px solid var(--border); }
-.row .mono { font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
-.row p { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
-.list-title { font-size: 12.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 4px 0; }
-
-/* sdk data */
-.data-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
-.data-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; box-shadow: var(--shadow); }
-.data-card h3 { margin: 0 0 2px; font-size: 13px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
-.data-card .big { font-size: 18px; font-weight: 650; }
-.data-card p { margin: 2px 0 8px; color: var(--muted); font-size: 13.5px; }
-.data-card a { font: 13px ui-monospace, monospace; }
-ul.plain { margin: 0; padding-left: 18px; }
-ul.plain li { margin: 4px 0; }
-
-/* examples */
-.demo { display: grid; grid-template-columns: 290px minmax(0, 1fr); gap: 16px; align-items: start; }
-@media (max-width: 860px) { .demo { grid-template-columns: 1fr; } }
-.demo-list { display: flex; flex-direction: column; gap: 6px; }
-@media (max-width: 860px) { .demo-list { flex-direction: row; overflow-x: auto; padding-bottom: 4px; } .demo-item { min-width: 220px; } }
-.demo-item { text-align: left; border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 10px;
-  padding: 9px 12px; cursor: pointer; font: 13.5px/1.4 system-ui, sans-serif; }
-.demo-item b { display: block; font: 600 12.5px ui-monospace, monospace; color: var(--accent); margin-bottom: 2px; }
-.demo-item:hover { border-color: var(--accent); }
-.demo-item[aria-selected="true"] { border-color: var(--accent); background: var(--accent-soft); }
-.demo-view { min-width: 0; }
-.demo-view pre.result { max-height: 520px; overflow: auto; }
-.j-key { color: #7cc7ff; } .j-str { color: #a5e3a0; } .j-num { color: #f7b267; } .j-bool { color: #e39cff; } .j-null { color: #8b98a9; }
-
 footer { border-top: 1px solid var(--border); padding: 26px 0 40px; color: var(--muted); font-size: 13px; }
 footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 22px; justify-content: space-between; }
 </style>
@@ -216,8 +173,6 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 22px; justify-content: s
     <nav class="nav">
       <a href="#install">Install</a>
       <a class="opt" href="#features">Features</a>
-      <a class="opt" href="#sdk-data">SDK data</a>
-      <a class="opt" href="#examples">Examples</a>
       <a id="gh-link" href="#">GitHub</a>
       <button class="icon-btn" id="theme" type="button" title="Toggle light/dark theme" aria-label="Toggle light/dark theme">◐</button>
     </nav>
@@ -313,54 +268,6 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 22px; justify-content: s
       <h2>What you can do</h2>
       <p class="sub">Ask your agent in plain language; it picks the right tools. Some examples for each task:</p>
       <div class="cap-grid" id="cap-grid"></div>
-      <details class="more">
-        <summary>Tool reference <span class="muted" id="reference-count"></span></summary>
-        <div class="body">
-          <div class="toolbar">
-            <input type="search" id="tool-filter" placeholder="Filter tools: uart, hardfault, kconfig…" aria-label="Filter tools">
-            <div class="legend">
-              <span class="badge read">read-only</span><span class="badge write">writes files</span>
-              <span class="badge hardware">hardware</span>
-            </div>
-          </div>
-          <div id="tool-groups"></div>
-          <p class="empty" id="no-match" hidden>No tool matches.</p>
-          <div class="tool-group"><h4>Built-in prompts</h4>
-            <p class="hint">Ready-made workflows; Claude Code lists them as <code>/mcp__neon-mcp__&lt;name&gt;</code>.</p><div id="prompts"></div></div>
-          <div class="tool-group"><h4>Resources</h4><div id="resources"></div></div>
-          <p class="hint" style="margin-top:16px">Building on NEON MCP? The internal architecture is in <a id="arch-link" href="#">ARCHITECTURE.md</a>.</p>
-        </div>
-      </details>
-    </div>
-  </section>
-
-  <section id="sdk-data">
-    <div class="wrap">
-      <h2>SDK data</h2>
-      <p class="sub" id="data-sub"></p>
-      <div class="data-grid" id="data-grid"></div>
-      <details class="more">
-        <summary>How the server uses this data</summary>
-        <div class="body">
-          <ul class="plain">
-            <li>At startup the server reads <code>neon-mdf/VERSION</code> from your checkout and selects the data of that release.</li>
-            <li>If the checkout matches the release, device, API and documentation data come from these files.</li>
-            <li>If the checkout was modified, or the release has no data yet, the server reads the checkout directly, so answers always match the code you build.</li>
-            <li>New NEON-MDF releases get their data automatically; installs that run from git pick it up on their next start.</li>
-          </ul>
-        </div>
-      </details>
-    </div>
-  </section>
-
-  <section id="examples">
-    <div class="wrap">
-      <h2>Examples</h2>
-      <p class="sub" id="examples-sub"></p>
-      <div class="demo">
-        <div class="demo-list" role="tablist" id="demo-list"></div>
-        <div class="demo-view" id="demo-view"></div>
-      </div>
     </div>
   </section>
 </main>
@@ -382,7 +289,6 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 22px; justify-content: s
   const SDK_REPO = D.neon_mdf_repo || "ftel-cdc/neon_mdf";
   const $ = (sel, root = document) => root.querySelector(sel);
   const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
   const store = {
     get(k) { try { return localStorage.getItem(k); } catch { return null; } },
     set(k, v) { try { localStorage.setItem(k, v); } catch { /* storage unavailable */ } },
@@ -440,19 +346,15 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 22px; justify-content: s
   /* header, stats, footer --------------------------------------------------- */
   $("#gh-link").href = REPO_URL;
   $("#gh-button").href = REPO_URL;
-  const cat = D.catalog;
-  const sdkLabel = D.sdk.ref || (D.sdk.version ? `v${D.sdk.version}` : "NEON-MDF");
   $("#foot-build").textContent = `NEON MCP v${D.version}` + (D.commit ? ` · commit ${D.commit}` : "") + ` · built ${D.built_at}`;
-  $("#arch-link").href = `${REPO_URL}/blob/HEAD/docs/ARCHITECTURE.md`;
   $("#foot-links").innerHTML = `<a href="${REPO_URL}">Source</a> · ` +
     `<a href="${REPO_URL}/blob/HEAD/docs/ARCHITECTURE.md">Architecture</a> · ` +
     `<a href="https://github.com/${esc(SDK_REPO)}/releases">NEON-MDF releases</a>`;
 
   /* NEON-MDF release --------------------------------------------------------- */
-  // D.packs is sorted newest first; the first one is the latest release.
-  const releases = D.packs.length ? D.packs : [{
-    name: null, version: D.sdk.version || "?", contents: {}, devices: [], status: null,
-    release_url: `https://github.com/${SDK_REPO}/releases`,
+  // Releases supported by this NEON MCP, newest first: the first one is the latest.
+  const releases = D.releases.length ? D.releases : [{
+    version: D.sdk.version || "?", devices: [], release_url: `https://github.com/${SDK_REPO}/releases`,
   }];
   const select = $("#release-select");
   select.innerHTML = releases.map((r, i) => `<option value="${i}">v${esc(r.version)}${i === 0 ? " (latest)" : ""}</option>`).join("");
@@ -651,8 +553,6 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 22px; justify-content: s
   form.addEventListener("input", renderInstall);
   form.addEventListener("change", renderInstall);
 
-  /* sdk data (selected release) ---------------------------------------------- */
-  const fileLink = (rel, label) => release.name ? `<a href="packs/${esc(release.name)}/${esc(rel)}">${esc(label || rel)}</a>` : "";
   function renderRelease() {
     const devices = release.devices || [];
     $("#release-chips").innerHTML = devices.length
@@ -660,25 +560,6 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 22px; justify-content: s
       : `<span class="muted">unknown</span>`;
     $("#release-link").href = release.release_url;
     $("#release-link").textContent = `Release v${release.version} on GitHub ↗`;
-
-    const c = release.contents || {};
-    const inUse = release.status === "verified";
-    const usage = inUse ? (D.server_url ? ", the release this server is using" : ", the release the examples below run on") : "";
-    $("#data-sub").innerHTML = release.name
-      ? `Data pre-generated for NEON-MDF <b>v${esc(release.version)}</b>${usage}. Open a file to see exactly what the agent gets ` +
-        `(${fileLink("manifest.json", "manifest")}: version, counts and fingerprint).`
-      : `No pre-generated data for this release: the server reads the NEON-MDF checkout directly.`;
-    const card = (title, big, detail, link) =>
-      `<div class="data-card"><h3>${esc(title)}</h3><div class="big">${big}</div><p>${detail}</p>${link}</div>`;
-    const cards = devices.map((d) => {
-      const rel = `devices/${d.device}.json`;
-      const info = c[rel] || {};
-      return card("Device", esc(d.device), `${esc(archLabel(d.arch))} · ${info.peripherals} peripherals · ${info.registers} registers`, fileLink(rel));
-    });
-    if (c["api.json"]) cards.push(card("C API", `${c["api.json"].entries} entries`, plural(c["api.json"].modules, "module"), fileLink("api.json")));
-    if (c["docs.json"]) cards.push(card("Documentation", plural(c["docs.json"].documents, "document"), plural(c["docs.json"].sections, "section"), fileLink("docs.json")));
-    if (c["sdk.json"]) cards.push(card("SDK", plural(c["sdk.json"].components, "component"), plural(c["sdk.json"].examples, "example"), fileLink("sdk.json")));
-    $("#data-grid").innerHTML = cards.join("");
   }
   select.addEventListener("change", () => {
     release = releases[Number(select.value)];
@@ -699,57 +580,6 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 22px; justify-content: s
   $("#cap-grid").innerHTML = groups.filter((g) => g.card !== false).map((g) =>
     `<div class="cap"><div class="cap-head"><h3>${esc(g.title)}</h3><span class="badge ${esc(g.access)}" title="${esc(ACCESS_TIP[g.access])}">${esc(KIND[g.access])}</span></div>` +
     `<p>${esc(g.summary)}</p><ul class="asks">${g.examples.map((e) => `<li>“${esc(e)}”</li>`).join("")}</ul></div>`).join("");
-
-  function toolRow(name) {
-    const t = D.tools[name] || { description: "", kind: "read", params: [] };
-    return `<div class="tool" data-search="${esc((name + " " + t.description).toLowerCase())}">` +
-      `<div class="tool-name"><span>${esc(name)}<span class="params">(${esc(t.params.join(", "))})</span></span>` +
-      `<span class="badge ${t.kind}">${KIND[t.kind]}</span></div><p>${esc(t.description)}</p></div>`;
-  }
-  $("#reference-count").textContent = `${plural(Object.keys(D.tools).length, "tool")}, ${plural(D.prompts.length, "prompt")}, ` +
-    plural(D.resources.length, "resource");
-  $("#tool-groups").innerHTML = groups.map((g) =>
-    `<div class="tool-group"><h4>${esc(g.title)}</h4>${g.tools.map(toolRow).join("")}</div>`).join("");
-
-  $("#tool-filter").addEventListener("input", (ev) => {
-    const q = ev.target.value.trim().toLowerCase();
-    let any = false;
-    for (const group of document.querySelectorAll("#tool-groups .tool-group")) {
-      let hits = 0;
-      for (const row of group.querySelectorAll(".tool")) {
-        const hit = !q || row.dataset.search.includes(q);
-        row.hidden = !hit;
-        if (hit) hits++;
-      }
-      group.hidden = hits === 0;
-      any = any || hits > 0;
-    }
-    $("#no-match").hidden = any;
-  });
-
-  $("#prompts").innerHTML = D.prompts.map((p) =>
-    `<div class="row"><div class="mono">${esc(p.name)}(${esc(p.arguments.join(", "))})</div><p>${esc(p.description || "")}</p></div>`).join("");
-  $("#resources").innerHTML = D.resources.map((r) =>
-    `<div class="row"><div class="mono">${esc(r.uri)}</div><p>${esc(r.description || "")}</p></div>`).join("");
-
-  /* examples --------------------------------------------------------------- */
-  $("#examples-sub").textContent = `Real output of read-only tools against NEON-MDF ${sdkLabel}` +
-    `${D.sdk.commit ? " (" + D.sdk.commit + ")" : ""}. Long lists are shortened.`;
-  const demoList = $("#demo-list");
-  demoList.innerHTML = D.demos.map((d, i) =>
-    `<button class="demo-item" role="tab" type="button" data-i="${i}"><b>${esc(d.tool)}</b>${esc(d.title)}</button>`).join("");
-
-  function showDemo(i) {
-    const d = D.demos[i];
-    demoList.querySelectorAll(".demo-item").forEach((b, j) => b.setAttribute("aria-selected", String(i === j)));
-    const call = `${d.tool}(${json(d.arguments) === "{}" ? "" : json(d.arguments)})`;
-    $("#demo-view").innerHTML = snippet("Call", call) + snippet("Result", json(d.result), { json: true, cls: "result" });
-  }
-  demoList.addEventListener("click", (ev) => {
-    const btn = ev.target.closest(".demo-item");
-    if (btn) showDemo(Number(btn.dataset.i));
-  });
-  if (D.demos.length) showDemo(0);
 })();
 </script>
 </body>

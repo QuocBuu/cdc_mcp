@@ -82,10 +82,11 @@ The status is reported by `sdk_get_info` (`knowledge_pack`) and `session_get_con
 
 ## Install page
 
-`src/neon_mcp/web/index.html` is filled with data from the server itself (`core/web.py`): the
-user-facing capability groups, tool reference, SDK data per release and real output of read-only
-tools. The Streamable HTTP transport serves it at `/`; `pages/build.py` builds the same page for
-GitHub Pages. Every tool must belong to one capability group in `core/web.py` (checked by tests).
+`src/neon_mcp/web/index.html` tells users what NEON MCP is, which NEON-MDF releases and chips it
+supports (one per bundled knowledge pack, latest first), how to add it to each client, and what
+they can ask the agent to do. Its data comes from the server itself (`core/web.py`). The
+Streamable HTTP transport serves it at `/`; `pages/build.py` builds the same page for GitHub
+Pages. Every tool must belong to one capability group in `core/web.py` (checked by tests).
 
 ## Hardware debugging
 
@@ -124,7 +125,7 @@ MCP server lifecycle, tool/resource/prompt registries, sessions and transports.
 | **prompt_manager** — Workflow prompts: new peripheral app, firmware review, HardFault debugging. | ✅ | `core/prompts.py` | prompt `new_peripheral_app`, prompt `firmware_review`, prompt `debug_hardfault` |
 | **session_manager** — Per-connection defaults (target, app, serial port, baud). | ✅ | `core/session.py` | `session_get_context`, `session_set_context` |
 | **transport** — stdio (default) and Streamable HTTP. | ✅ | `core/transport.py` | — |
-| **install_page** — Install guide with live catalog and demos: served at / over HTTP, published on GitHub Pages. | ✅ | `core/web.py` | — |
+| **install_page** — Install guide: supported releases and chips, client setup, example requests; at / and on GitHub Pages. | ✅ | `core/web.py` | — |
 
 ### 02 Knowledge Module (`knowledge`) — 4/5 submodules
 
