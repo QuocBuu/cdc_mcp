@@ -9,7 +9,7 @@ from ..modules import analysis, debug, development, knowledge, programming, sdk
 from ..modules.sdk import knowledge_pack
 from ..targets import registry as target_registry
 from . import MODULE as CORE_MODULE
-from . import prompts, resources, session, tools
+from . import prompts, resources, session, tools, web
 from .app import NeonApp
 from .tools import ToolRegistry
 
@@ -51,5 +51,6 @@ def create_server(app: NeonApp) -> MCPServer:
     for module in FUNCTIONAL_MODULES:
         module.register(registry, app)
     knowledge_pack.activate(app)  # serve the release's pre-generated data when the checkout matches it
+    web.register_routes(mcp, app)  # install page at / when running over Streamable HTTP
     app.registry = registry
     return mcp

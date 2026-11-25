@@ -7,6 +7,7 @@ code, attached to each tool as `_meta`, and queryable with the `neon_list_module
 
 from __future__ import annotations
 
+import copy
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any, Literal, TypeVar
@@ -76,7 +77,9 @@ class ToolRegistry:
         self.modules: dict[str, Module] = {}
 
     def add_module(self, module: Module) -> None:
-        self.modules[module.id] = module
+        # Copy the declared spec: tools/prompts/resources are recorded per server, so several servers
+        # in one process (tests, the Pages build) never share or duplicate entries.
+        self.modules[module.id] = copy.deepcopy(module)
 
     def tool(self, module: str, submodule: str, annotations: ToolAnnotations) -> Callable[[F], F]:
         """Register an MCP tool and record which module/submodule owns it."""

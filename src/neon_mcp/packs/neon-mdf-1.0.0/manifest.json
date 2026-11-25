@@ -19,6 +19,9 @@
       "sections": 241
     },
     "devices/GT32U2086.json": {
+      "device": "GT32U2086",
+      "vendor": "FPTTelecom",
+      "arch": "cortex-m0",
       "peripherals": 36,
       "registers": 1031
     }

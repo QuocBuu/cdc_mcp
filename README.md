@@ -102,7 +102,7 @@ Gọi tool `dev_check_environment` để kiểm tra và nhận hướng dẫn c�
 | `--sdk-python PATH` | `NEON_MCP_SDK_PYTHON` | Python dùng cho CMake và tool của SDK. Mặc định lấy `.venv` của app/SDK, nếu không có thì dùng Python của NEON MCP |
 | `--targets-dir PATH` | `NEON_MCP_TARGETS_DIR` | Thư mục profile target bổ sung |
 | `--packs-dir PATH` | `NEON_MCP_PACKS_DIR` | Thư mục knowledge pack bổ sung, được ưu tiên hơn pack đi kèm |
-| `--transport streamable-http --host --port` | | Chạy qua HTTP thay cho stdio |
+| `--transport streamable-http --host --port` | | Chạy qua HTTP thay cho stdio. Client kết nối tới `http://<host>:<port>/mcp`; mở `http://<host>:<port>/` để xem trang hướng dẫn cài với URL điền sẵn |
 
 ### Claude Code
 

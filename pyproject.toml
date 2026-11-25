@@ -16,6 +16,10 @@ dependencies = [
     "pyelftools>=0.31",
 ]
 
+[project.urls]
+Repository = "https://github.com/QuocBuu/cdc_mcp"
+Documentation = "https://quocbuu.github.io/cdc_mcp/"
+
 [project.optional-dependencies]
 dev = ["pytest>=8", "ruff>=0.6"]
 
@@ -27,7 +31,7 @@ neon-mcp-pack = "neon_mcp.modules.sdk.knowledge_pack:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-neon_mcp = ["targets/*/target.yaml", "packs/*/*.json", "packs/*/devices/*.json"]
+neon_mcp = ["targets/*/target.yaml", "packs/*/*.json", "packs/*/devices/*.json", "web/*.html", "web/*.svg"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

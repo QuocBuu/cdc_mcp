@@ -74,7 +74,8 @@ def build(app: NeonApp) -> tuple[dict, dict[str, Any]]:
         device = parse_device(path)
         rel = f"devices/{path.stem}.json"
         files[rel] = device.to_pack()
-        contents[rel] = {"peripherals": len(device.peripherals),
+        contents[rel] = {"device": device.name, "vendor": device.vendor, "arch": device.arch,
+                         "peripherals": len(device.peripherals),
                          "registers": sum(len(p.registers) for p in device.peripherals)}
     manifest = {"schema": packs.SCHEMA, "name": packs.pack_name(version), "sdk": {"version": version},
                 "fingerprint": packs.fingerprint(sdk), "contents": contents}
@@ -186,7 +187,7 @@ def main(argv: list[str] | None = None) -> int:
     except FileExistsError as exc:
         print(f"neon-mcp-pack: {exc}", file=sys.stderr)
         return 1
-    counts = "; ".join(f"{rel}: " + ", ".join(f"{v} {k}" for k, v in c.items())
+    counts = "; ".join(f"{rel}: " + ", ".join(f"{v} {k}" for k, v in c.items() if isinstance(v, int))
                        for rel, c in manifest["contents"].items())
     print(f"{target}\n  {counts}")
     return 0

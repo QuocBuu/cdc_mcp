@@ -17,5 +17,8 @@ MODULE = Module(
         Submodule("session_manager", "Session Manager",
                   "Per-connection defaults (target, app, serial port, baud).", source="core/session.py"),
         Submodule("transport", "Transport", "stdio (default) and Streamable HTTP.", source="core/transport.py"),
+        Submodule("install_page", "Install Page",
+                  "Install guide with live catalog and demos: served at / over HTTP, published on GitHub Pages.",
+                  source="core/web.py"),
     ],
 )

@@ -103,7 +103,7 @@ Trạng thái nằm trong `sdk_get_info` (`knowledge_pack`) và `session_get_con
 
 ## Danh mục module (sinh từ code)
 
-### 01 MCP Core (`core`) — 6/6 submodule
+### 01 MCP Core (`core`) — 7/7 submodule
 
 MCP server lifecycle, tool/resource/prompt registries, sessions and transports.
 
@@ -115,6 +115,7 @@ MCP server lifecycle, tool/resource/prompt registries, sessions and transports.
 | **prompt_manager** — Workflow prompts: new peripheral app, firmware review, HardFault debugging. | ✅ | `core/prompts.py` | prompt `new_peripheral_app`, prompt `firmware_review`, prompt `debug_hardfault` |
 | **session_manager** — Per-connection defaults (target, app, serial port, baud). | ✅ | `core/session.py` | `session_get_context`, `session_set_context` |
 | **transport** — stdio (default) and Streamable HTTP. | ✅ | `core/transport.py` | — |
+| **install_page** — Install guide with live catalog and demos: served at / over HTTP, published on GitHub Pages. | ✅ | `core/web.py` | — |
 
 ### 02 Knowledge Module (`knowledge`) — 4/5 submodule
 
