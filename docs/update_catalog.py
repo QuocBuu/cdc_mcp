@@ -14,15 +14,15 @@ from neon_mcp.core.server import create_server
 from neon_mcp.system.config import Settings
 
 DOC = Path(__file__).resolve().parent / "ARCHITECTURE.md"
-MARKER = "## Danh mục module (sinh từ code)"
+MARKER = "## Module catalog (generated from code)"
 
 
 def render(catalog: list[dict]) -> str:
     out = [MARKER, ""]
     for m in catalog:
-        out += [f"### {m['number']} {m['title']} (`{m['id']}`) — {m['submodules_implemented']} submodule", "",
+        out += [f"### {m['number']} {m['title']} (`{m['id']}`) — {m['submodules_implemented']} submodules", "",
                 m["description"], "",
-                "| Submodule | Trạng thái | File | Tool / prompt / resource |", "|---|---|---|---|"]
+                "| Submodule | Status | File | Tools / prompts / resources |", "|---|---|---|---|"]
         for s in m["submodules"]:
             items = [f"`{t}`" for t in s["tools"]] + [f"prompt `{p}`" for p in s.get("prompts", [])]
             items += [f"`{r}`" for r in s.get("resources", [])]

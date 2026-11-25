@@ -1,112 +1,65 @@
 # NEON MCP
 
-NEON MCP là MCP server (Model Context Protocol) giúp AI agent như Claude Code, Cursor hay
-VS Code làm việc với SDK firmware [NEON-MDF](https://github.com/ftel-cdc/neon_mdf). Qua server
-này, agent có thể:
+[![CI](https://github.com/QuocBuu/cdc_mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/QuocBuu/cdc_mcp/actions/workflows/ci.yml)
+[![Install page](https://img.shields.io/badge/install-quocbuu.github.io%2Fcdc__mcp-0b8a7a)](https://quocbuu.github.io/cdc_mcp/)
 
-- tra cứu tài liệu, dữ liệu chip/register và C API;
-- tìm example, tạo project, chỉnh `sdkconfig`, build;
-- kiểm tra image, nạp firmware qua UART và đọc log.
+NEON MCP is a [Model Context Protocol](https://modelcontextprotocol.io) server that gives AI coding
+agents (Claude Code, Cursor, VS Code, Claude Desktop, Codex) the
+[NEON-MDF](https://github.com/ftel-cdc/neon_mdf) firmware SDK for the GT32U2086 (Cortex-M0).
 
-**Nguyên tắc:** NEON MCP chỉ là lớp giao tiếp giữa AI và NEON-MDF, không thay thế SDK. Mọi dữ
-liệu và công cụ đều lấy trực tiếp từ checkout NEON-MDF:
+With it, an agent can:
 
-| Lấy từ NEON-MDF | Đường dẫn |
-|---|---|
-| Tài liệu | `guide/`, README của example |
-| Dữ liệu chip | `mcu-description/devices/*.yaml` |
-| C API | header trong `components/` |
-| Template | `tools/templates*` |
-| Cấu hình | Kconfig, qua `kconfiglib` |
-| Build | CMake preset |
-| Nạp firmware | `gt32u2086_flash.py` |
-| Image | `gt32u2086_image.py` |
+- **Look up the chip:** documentation, memory map, boot modes, peripherals, registers and bit fields.
+- **Use the SDK:** the C API with its documentation, driver sources, examples and the Kconfig,
+  clocks and includes a feature needs.
+- **Create and build projects:** templates, `sdkconfig` options, CMake builds with diagnostics and
+  memory usage.
+- **Flash and run:** check images, program over UART, capture and summarize the board's log.
+- **Debug:** GDB sessions through OpenOCD or a running GDB server.
+- **Analyze crashes:** decode a HardFault down to the faulting instruction and source line.
 
-## Trạng thái phiên bản 0.3 — đủ phạm vi V1
+NEON MCP does not replace the SDK: it reads your NEON-MDF checkout and runs the SDK's own tools,
+so the agent always works with the SDK you build with.
 
-NEON MCP gồm **10 module**, mỗi module chia thành các submodule; mỗi submodule là một file riêng.
-Tổng cộng có **43 tool, 3 prompt và 6 resource**. Danh mục đầy đủ (module → submodule → file →
-tool, kèm trạng thái) nằm trong [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). Cũng xem được
-bằng tool `neon_list_modules`.
+## Quick start
 
-| # | Module | Submodule đã làm | Tool |
-|---|---|---|---|
-| 01 | MCP Core | server, tool_registry, resource_registry, prompt_manager, session_manager, transport | `neon_list_modules`, `session_get_context`, `session_set_context` |
-| 02 | Knowledge | documentation, search, device_knowledge, register_knowledge *(planned: datasheet/TRM/errata)* | `knowledge_*` (5) |
-| 03 | SDK | sdk_discovery, component, api, source, example, dependency, knowledge_pack | `sdk_*` (7) |
-| 04 | Development | toolchain, project, configuration, code_generation, build | `dev_*` (7) |
-| 05 | Debug | session, cpu, register, memory, peripheral, breakpoint, source_debug *(planned: multicore)* | `debug_*` (9) |
-| 06 | Programming | image, verify, boot, flash | `prog_*` (5) |
-| 07 | Analysis | elf, exception, register_decoder, log_analyzer *(planned: memory_analyzer)* | `analysis_*` (6) |
-| 08 | Target & Device | registry, capabilities, gt32u2086, cortex_m *(planned: riscv, fu3)* | `target_list` |
-| 09 | Backend & Adapter | neon_mdf, device_yaml, cmake, kconfig, elf, uart, gdb, openocd, knowledge_pack *(planned: vscode)* | (nội bộ) |
-| 10 | System & Security | config, workspace, process, security, logging, errors | (nội bộ) |
+The install page has per-client commands, one-click buttons for Cursor and VS Code, and real tool
+output: **https://quocbuu.github.io/cdc_mcp/**
 
-**Knowledge pack:** dữ liệu chip, C API, tài liệu và SDK của từng bản NEON-MDF được sinh sẵn trong
-`src/neon_mcp/packs/neon-mdf-<version>/` (hiện có v1.0.0). Server chọn pack theo `neon-mdf/VERSION`
-của checkout và chỉ dùng khi checkout khớp bản phát hành; nếu không thì đọc trực tiếp từ checkout.
-Workflow `Knowledge packs` tự sinh pack khi NEON-MDF có tag mới. Chi tiết trong
-[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#knowledge-pack-theo-phiên-bản-neon-mdf).
-
-**Debug:** SDK chưa có cấu hình OpenOCD đã kiểm chứng cho GT32U2086, nên `debug_connect` cần
-một trong hai:
-- file cấu hình OpenOCD đã kiểm chứng với board;
-- địa chỉ GDB server đang chạy.
-
-GDB dùng `arm-none-eabi-gdb` hoặc `gdb-multiarch`. Phần Debug đã được kiểm thử với GDB server
-giả lập, chưa chạy trên board thật.
-
-## Cài nhanh
-
-Trang hướng dẫn cài (có nút cài một chạm cho Cursor và VS Code, kèm demo kết quả tool thật):
-**https://quocbuu.github.io/cdc_mcp/**. Workflow `Pages` tự build lại trang sau mỗi lần push lên `main`.
-
-Cần [uv](https://docs.astral.sh/uv/) và một checkout NEON-MDF. Ví dụ với Claude Code:
+With [uv](https://docs.astral.sh/uv/) and Claude Code:
 
 ```sh
 git clone --branch v1.0.0 https://github.com/ftel-cdc/neon_mdf.git ~/neon_mdf
 claude mcp add --scope user neon-mcp -- uvx --from git+https://github.com/QuocBuu/cdc_mcp neon-mcp --sdk ~/neon_mdf
 ```
 
-## Cài đặt từ mã nguồn
+Building firmware also needs `arm-none-eabi-gcc` with newlib, **CMake ≥ 3.25** and Ninja (see
+`guide/Setup.md` in NEON-MDF). The `dev_check_environment` tool reports anything missing.
 
-Cần Python 3.10 trở lên và một checkout NEON-MDF.
-
-```sh
-git clone https://github.com/ftel-cdc/neon_mdf.git      # nếu chưa có
-cd cdc_mcp
-python3 -m venv .venv
-.venv/bin/python -m pip install -e .
-```
-
-Để build firmware, máy cần các công cụ SDK yêu cầu (xem `guide/Setup.md` của NEON-MDF):
-
-- `arm-none-eabi-gcc` có kèm newlib;
-- **CMake ≥ 3.25**;
-- Ninja.
-
-Gọi tool `dev_check_environment` để kiểm tra và nhận hướng dẫn cài phần còn thiếu.
-
-## Chạy server
+## Running the server
 
 ```sh
-.venv/bin/neon-mcp --sdk /path/to/neon_mdf --workspace /path/to/projects
+neon-mcp --sdk /path/to/neon_mdf --workspace /path/to/projects
 ```
 
-| Tùy chọn | Biến môi trường | Ý nghĩa |
+| Option | Environment variable | Description |
 |---|---|---|
-| `--sdk PATH` | `NEON_MCP_SDK_PATH` | Checkout NEON-MDF. Nếu bỏ trống, server tự tìm qua `NEON_MDF_PATH`, rồi thư mục hiện tại và các thư mục cha, rồi `./neon_mdf` |
-| `--workspace PATH` (lặp lại được) | `NEON_MCP_WORKSPACE` | Thư mục mà agent được đọc/ghi. Mặc định là thư mục hiện tại; SDK luôn được thêm vào |
-| `--allow-hardware` | `NEON_MCP_ALLOW_HARDWARE=1` | Cho phép mở cổng serial và nạp board. **Mặc định tắt** |
-| `--read-only` | `NEON_MCP_READ_ONLY=1` | Cấm tạo project, sửa sdkconfig và build |
-| `--sdk-python PATH` | `NEON_MCP_SDK_PYTHON` | Python dùng cho CMake và tool của SDK. Mặc định lấy `.venv` của app/SDK, nếu không có thì dùng Python của NEON MCP |
-| `--targets-dir PATH` | `NEON_MCP_TARGETS_DIR` | Thư mục profile target bổ sung |
-| `--packs-dir PATH` | `NEON_MCP_PACKS_DIR` | Thư mục knowledge pack bổ sung, được ưu tiên hơn pack đi kèm |
-| `--transport streamable-http --host --port` | | Chạy qua HTTP thay cho stdio. Client kết nối tới `http://<host>:<port>/mcp`; mở `http://<host>:<port>/` để xem trang hướng dẫn cài với URL điền sẵn |
+| `--sdk PATH` | `NEON_MCP_SDK_PATH` | NEON-MDF checkout. If omitted: `NEON_MDF_PATH`, then the current directory and its parents, then `./neon_mdf` |
+| `--workspace PATH` (repeatable) | `NEON_MCP_WORKSPACE` | Directories the agent may read and write. Defaults to the current directory; the SDK is always included |
+| `--allow-hardware` | `NEON_MCP_ALLOW_HARDWARE=1` | Allow serial ports, flashing and debugging. **Off by default** |
+| `--read-only` | `NEON_MCP_READ_ONLY=1` | Forbid project creation, `sdkconfig` edits and builds |
+| `--sdk-python PATH` | `NEON_MCP_SDK_PYTHON` | Python used for CMake and the SDK tools. Defaults to the app's or SDK's `.venv`, else NEON MCP's own Python |
+| `--targets-dir PATH` | `NEON_MCP_TARGETS_DIR` | Extra target profile directory |
+| `--packs-dir PATH` | `NEON_MCP_PACKS_DIR` | Extra knowledge pack directory, searched before the bundled packs |
+| `--transport streamable-http --host --port` | | Serve over HTTP instead of stdio |
 
-### Claude Code
+**HTTP mode.** With `--transport streamable-http`, clients connect to `http://<host>:<port>/mcp`,
+and `http://<host>:<port>/` serves the install page with that URL filled in. The endpoint has no
+authentication: keep the default `--host 127.0.0.1`, or expose it only on a trusted network,
+preferably with `--read-only`.
 
-Tạo file `.mcp.json` ở thư mục gốc workspace:
+**Client configuration.** For a checkout installed from source, add a `.mcp.json` at the
+workspace root (Cursor and VS Code use the same `command`/`args` in their own MCP config files):
 
 ```json
 {
@@ -119,110 +72,111 @@ Tạo file `.mcp.json` ở thư mục gốc workspace:
 }
 ```
 
-Nếu cần nạp board, thêm `"--allow-hardware"` vào `args`. Cursor và VS Code dùng cùng cách khai
-báo `command`/`args` trong file cấu hình MCP của mỗi IDE.
+Add `"--allow-hardware"` to `args` to flash or debug a board.
 
-## Quy trình điển hình cho agent
+## Typical agent workflow
 
-1. `session_get_context`, rồi `session_set_context(app_dir="examples/Printf_Log")`.
-2. Tìm hiểu: `knowledge_search("boot mode 100")`, `sdk_search_api("neon_uart_transmit")`,
-   `sdk_find_examples(module="spi")`.
-3. Tạo project hoặc sửa code: `dev_create_project("MyApp", "<dir>")`,
+1. `session_get_context`, then `session_set_context(app_dir="examples/Printf_Log")`.
+2. Research: `knowledge_search("boot mode 100")`, `sdk_search_api("neon_uart_transmit")`,
+   `sdk_find_examples(module="spi")`, `sdk_resolve_dependencies(["adc"])`.
+3. Create or edit: `dev_create_project("MyApp", "<dir>")`,
    `dev_set_config({"CONFIG_NEON_MDF_DRIVER_SPI": true})`.
-4. Build: `dev_build()`. Kết quả gồm diagnostic (file, dòng), mức dùng Flash/RAM và artifact.
-5. Kiểm tra: `prog_inspect_image()`, `analysis_elf_summary()`.
-6. Nạp và chạy (cần `--allow-hardware`):
-   - Agent nhắc người dùng chọn boot mode `100`, rồi gọi `prog_flash_uart(port=...)`.
-   - Người dùng bấm RESET khi tool báo sẵn sàng.
-   - `analysis_capture_uart(send="r")` để đọc log.
-   - Chuyển board về boot mode `000`.
-7. Khi firmware bị crash:
-   - Có log của fault handler: `analysis_decode_exception(stack_frame=[...], exc_return=...)`.
-   - Có debugger: `debug_connect(...)`, rồi `analysis_decode_exception(from_debug_session=True)`.
-   - Kết quả cho biết vị trí lỗi (hàm, file:dòng), lệnh gây lỗi và các nguyên nhân khả dĩ, ví dụ truy
-     cập byte vào SRAM chỉ cho phép word.
+4. Build: `dev_build()` returns diagnostics (file, line), flash/RAM usage and artifacts.
+5. Check: `prog_verify_image()`, `analysis_elf_summary()`.
+6. Flash and run (requires `--allow-hardware`):
+   - the agent asks the user to select boot mode `100`, then calls `prog_flash_uart(port=...)`;
+   - the user presses RESET when the tool is ready;
+   - `analysis_capture_uart(send="r")` reads the log;
+   - the board goes back to boot mode `000`.
+7. On a crash:
+   - from a fault handler's log: `analysis_decode_exception(stack_frame=[...], exc_return=...)`;
+   - with a debugger: `debug_connect(...)`, then `analysis_decode_exception(from_debug_session=True)`.
 
-## Bảo mật
+   The result gives the faulting function and `file:line`, the instruction, and likely causes,
+   such as a byte access to the word-only SRAM.
 
-- **READ** luôn được phép. **WRITE** (tạo project, sửa sdkconfig, build) tắt được bằng
-  `--read-only`. **HARDWARE** (serial, nạp board) chỉ bật khi có `--allow-hardware`.
-- Mọi đường dẫn agent truyền vào phải nằm trong workspace root hoặc SDK. Đường dẫn ra ngoài bị
-  từ chối.
-- Lệnh ngoài chạy không qua shell, stdin đóng, có timeout (build mặc định 900 giây, chỉnh bằng
-  `NEON_MCP_BUILD_TIMEOUT`), và bị dừng cả nhóm tiến trình khi quá hạn.
-- Tool có annotation MCP: `read_only_hint` cho tool chỉ đọc, `destructive_hint` cho tool nạp board.
-  Nhờ vậy client có thể hỏi xác nhận trước khi chạy.
+## SDK data per release
 
-## Cấu trúc
+The device, C API, documentation and SDK data of each NEON-MDF release are pre-generated in
+`src/neon_mcp/packs/neon-mdf-<version>/` (currently v1.0.0). At startup the server selects the
+pack matching the checkout's `neon-mdf/VERSION` and uses it when the checkout matches the release;
+otherwise it reads the checkout directly. The `Knowledge packs` workflow generates a pack for each
+new NEON-MDF release. Details: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#knowledge-packs).
+
+## Debugging hardware
+
+The SDK's OpenOCD configuration for the GT32U2086 is still a placeholder, so `debug_connect` needs
+either an OpenOCD configuration verified with your probe and board, or the address of a running
+GDB server (OpenOCD, J-Link, pyOCD). GDB is `arm-none-eabi-gdb` or `gdb-multiarch`.
+
+The debug tools are tested end to end against a simulated Cortex-M0 GDB server; flashing and
+debugging have not yet been validated on a physical board.
+
+## Security
+
+- **Read** access is always allowed. **Write** (project creation, `sdkconfig`, builds) can be
+  disabled with `--read-only`. **Hardware** (serial ports, flashing, debugging) requires
+  `--allow-hardware`.
+- Every path the agent passes must be inside a workspace root or the SDK.
+- External commands run without a shell, with stdin closed and a timeout (builds: 900 s,
+  `NEON_MCP_BUILD_TIMEOUT`); the whole process group is stopped on timeout.
+- Tools carry MCP annotations (`read_only_hint`, `destructive_hint`) so clients can ask for
+  confirmation before flashing.
+
+## Project layout
 
 ```text
 src/neon_mcp/
-├── core/                  # 01 MCP Core
-│   ├── server.py          #   server: lắp ráp mọi module
-│   ├── tools.py           #   tool_registry: Module/Submodule, neon_list_modules
-│   ├── resources.py       #   resource_registry: neon://...
-│   ├── prompts.py         #   prompt_manager
-│   ├── session.py         #   session_manager
-│   ├── transport.py       #   stdio / streamable-http
-│   └── app.py             #   application context dùng chung
-├── modules/
-│   ├── knowledge/         # 02: documentation, search, device_knowledge, register_knowledge
-│   ├── sdk/               # 03: sdk_discovery, component, api, source, example, dependency, knowledge_pack
-│   ├── development/       # 04: toolchain, project, configuration, code_generation, build
-│   ├── debug/             # 05: session, cpu, register_access, memory, peripheral, breakpoint, source_debug
-│   ├── programming/       # 06: image, verify, boot, flash
-│   └── analysis/          # 07: elf, exception, register_decoder, log_analyzer
-├── targets/               # 08: registry, capabilities, gt32u2086/target.yaml, arch/cortex_m.py
-├── packs/                 # knowledge pack sinh sẵn: neon-mdf-<version>/
-├── adapters/              # 09: neon_mdf, device, cmake, kconfig, elf, uart, gdb, openocd, knowledge_pack
-└── system/                # 10: config, workspace, process, security, logging, errors
+├── core/          # MCP server, tool/resource/prompt registries, session, transports, install page
+├── modules/       # knowledge, sdk, development, debug, programming, analysis
+├── targets/       # target registry and capabilities, GT32U2086 profile, Cortex-M backend
+├── adapters/      # NEON-MDF, device YAML, CMake, Kconfig, ELF, UART, GDB/MI, OpenOCD, knowledge packs
+├── system/        # configuration, workspace sandbox, processes, permissions, logging, errors
+├── packs/         # pre-generated SDK data: neon-mdf-<version>/
+└── web/           # install page
 ```
 
-Mỗi `modules/<module>/__init__.py` khai báo `MODULE` (danh sách submodule và trạng thái), rồi
-gọi `register()` của từng file submodule. Quy tắc phụ thuộc giữa các lớp và cách thêm
-tool/submodule được mô tả trong [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+Each submodule is one file. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) describes the layers,
+their dependency rules, how to add tools, and the full module catalog.
 
-## Thêm MCU mới
+## Supporting a new MCU
 
-1. Thêm `mcu-description/devices/<NAME>.yaml` vào NEON-MDF. Với file này, các tool tra tài liệu
-   và register đã dùng được ngay.
-2. Thêm `src/neon_mcp/targets/<name>/target.yaml` (hoặc đặt trong `--targets-dir`), lấy
-   `gt32u2086.yaml` làm mẫu. File gồm: preset, các profile bộ nhớ, capability, board, boot mode
-   và rules. Có profile này thì build/nạp mới được mở.
-3. Nếu kiến trúc CPU mới (ví dụ RISC-V của FU3), cần thêm backend phân tích/debug tương ứng.
-   Phần này dự kiến làm ở bản sau.
+1. Add `mcu-description/devices/<NAME>.yaml` to NEON-MDF. Documentation and register tools work
+   with it immediately.
+2. Add `src/neon_mcp/targets/<name>/target.yaml` (or put it in `--targets-dir`), using the
+   GT32U2086 profile as a template: preset, memory profiles, capabilities, board, boot modes and
+   rules. Builds and flashing are enabled once the profile exists.
+3. A new CPU architecture (for example RISC-V) also needs an analysis/debug backend in
+   `targets/arch/`.
 
-## Phát triển
+## Development
 
 ```sh
+python3 -m venv .venv
 .venv/bin/python -m pip install -e ".[dev]"
-.venv/bin/python -m pytest -q            # test với ../neon_mdf, hoặc đặt NEON_MCP_TEST_SDK
-.venv/bin/ruff check src tests pages
-.venv/bin/python pages/build.py --sdk ../neon_mdf --out _site   # xem trước trang cài đặt: mở _site/index.html
-.venv/bin/neon-mcp-pack --sdk ../neon_mdf --check                # pack đi kèm còn khớp với code sinh pack không
-.venv/bin/python docs/update_catalog.py --sdk ../neon_mdf        # cập nhật danh mục trong docs/ARCHITECTURE.md
+.venv/bin/python -m pytest -q                                   # uses ../neon_mdf, or NEON_MCP_TEST_SDK
+.venv/bin/ruff check src tests pages docs
+.venv/bin/neon-mcp-pack --sdk ../neon_mdf --check               # bundled pack still matches the generator
+.venv/bin/python docs/update_catalog.py --sdk ../neon_mdf       # refresh the catalog in docs/ARCHITECTURE.md
+.venv/bin/python pages/build.py --sdk ../neon_mdf --out _site   # preview the install page
 ```
 
-Test build thật (`test_build_template`) chỉ chạy khi máy có `arm-none-eabi-gcc`, Ninja và
-CMake ≥ 3.25; nếu thiếu thì tự bỏ qua.
+The firmware build test runs only when `arm-none-eabi-gcc`, Ninja and CMake ≥ 3.25 are installed;
+the debug session test also needs `gdb-multiarch` or `arm-none-eabi-gdb`.
 
-GitHub Actions:
-
-| Workflow | Khi nào chạy | Làm gì |
+| Workflow | Trigger | What it does |
 |---|---|---|
-| `CI` | push lên `main`, pull request | Lint và chạy test trên NEON-MDF v1.0.0. Có 2 job: Python 3.10, và Python 3.12 kèm toolchain ARM + `gdb-multiarch` để chạy cả test build và debug |
-| `Pages` | push lên `main`, chạy tay | Build trang cài đặt từ server thật (danh mục tool, demo, các knowledge pack) rồi deploy lên GitHub Pages |
-| `Knowledge packs` | hằng ngày, chạy tay | Sinh pack cho tag NEON-MDF mới, commit, rồi chạy lại CI và Pages. Chạy tay với `force` để sinh lại mọi pack |
+| `CI` | push to `main`, pull requests | Lint and tests against NEON-MDF v1.0.0, on Python 3.10 and on Python 3.12 with the ARM toolchain and `gdb-multiarch` |
+| `Pages` | push to `main`, manual | Builds the install page from a live server and deploys it to GitHub Pages |
+| `Knowledge packs` | daily, manual | Generates packs for new NEON-MDF releases, commits them, then reruns CI and Pages (`force` regenerates every pack) |
 
-Lần đầu bật Pages: vào Settings → Pages → Source, chọn **GitHub Actions**.
+GitHub Pages must use **GitHub Actions** as its source (Settings → Pages).
 
-## Lộ trình
+## Roadmap
 
-- **Kiểm chứng trên phần cứng:** chạy `prog_flash_uart`, `analysis_capture_uart` và các tool
-  `debug_*` trên board GT32U2086 thật, với cấu hình OpenOCD/probe đã kiểm chứng.
-- **Planned submodule:**
-  - Knowledge: nguồn Datasheet/TRM/Errata.
-  - Debug: multicore.
-  - Analysis: memory_analyzer (file map, `-fstack-usage`).
-  - Target: RISC-V backend, FU3.
-  - Adapter: VS Code.
+- Validate flashing, UART capture and debugging on a physical GT32U2086 board with a verified
+  OpenOCD configuration.
+- Datasheet, TRM and errata sources for the Knowledge module.
+- Memory analysis from map files and `-fstack-usage`.
+- Multi-core debugging, a RISC-V backend and the FU3 target.
+- Shared state with the NEON-MDF VS Code extension.
